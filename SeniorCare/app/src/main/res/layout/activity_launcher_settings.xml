@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    tools:context=".LauncherSettingsActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cài đặt Launcher"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Thay đổi kích thước chữ -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Kích thước chữ:"
+            android:textSize="18sp"
+            android:layout_marginBottom="8dp"/>
+
+        <RadioGroup
+            android:id="@+id/radioGroupFontSize"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+            <RadioButton
+                android:id="@+id/radioSmallFont"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nhỏ"
+                android:textSize="16sp"
+                android:layout_marginEnd="16dp"/>
+            <RadioButton
+                android:id="@+id/radioMediumFont"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Vừa"
+                android:textSize="16sp"
+                android:layout_marginEnd="16dp"/>
+            <RadioButton
+                android:id="@+id/radioLargeFont"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Lớn"
+                android:textSize="16sp"/>
+        </RadioGroup>
+
+        <!-- Thay đổi kích thước Icon -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Kích thước Icon:"
+            android:textSize="18sp"
+            android:layout_marginBottom="8dp"/>
+
+        <RadioGroup
+            android:id="@+id/radioGroupIconSize"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="24dp">
+            <RadioButton
+                android:id="@+id/radioSmallIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nhỏ"
+                android:textSize="16sp"
+                android:layout_marginEnd="16dp"/>
+            <RadioButton
+                android:id="@+id/radioMediumIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Vừa"
+                android:textSize="16sp"
+                android:layout_marginEnd="16dp"/>
+            <RadioButton
+                android:id="@+id/radioLargeIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Lớn"
+                android:textSize="16sp"/>
+        </RadioGroup>
+
+        <!-- Danh sách Ứng dụng ẩn/hiện -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Quản lý ứng dụng hiển thị:"
+            android:textSize="18sp"
+            android:layout_marginBottom="8dp"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/hiddenAppsRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false"
+            tools:listitem="@layout/settings_app_item"/>
+
+    </LinearLayout>
+</ScrollView>
