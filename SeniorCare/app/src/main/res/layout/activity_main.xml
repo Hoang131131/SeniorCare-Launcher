@@ -1,19 +1,172 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+    <!-- Top Widget Area (1/4 screen height) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/top_widget_area"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintHeight_percent="0.25"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:padding="16dp"
+        android:background="#E0E0E0"> <!-- Light gray background for visibility -->
+
+        <!-- Time and Date (Left 35%) -->
+        <LinearLayout
+            android:id="@+id/datetime_container"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintWidth_percent="0.35"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:gravity="center_horizontal">
+
+            <TextView
+                android:id="@+id/time_text_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="HH:MM"
+                android:textSize="48sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"/>
+
+            <TextView
+                android:id="@+id/date_text_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Thứ, DD/MM/YYYY"
+                android:textSize="20sp"
+                android:textColor="@android:color/black"/>
+        </LinearLayout>
+
+        <!-- Weather (Middle 35%) -->
+        <TextView
+            android:id="@+id/weather_text_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Thời tiết: Nắng"
+            android:textSize="24sp"
+            android:textColor="@android:color/black"
+            android:gravity="center"
+            app:layout_constraintWidth_percent="0.35"
+            app:layout_constraintStart_toEndOf="@+id/datetime_container"
+            app:layout_constraintEnd_toStartOf="@+id/volume_brightness_container"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+        <!-- Volume and Brightness Controls (Right 30%) -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/volume_brightness_container"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            app:layout_constraintWidth_percent="0.30"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <!-- Volume Controls (Left half of 30%) -->
+            <LinearLayout
+                android:id="@+id/volume_controls"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="center"
+                app:layout_constraintWidth_percent="0.5"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent">
+
+                <ImageButton
+                    android:id="@+id/volume_up_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:src="@android:drawable/ic_lock_silent_mode_off"
+                    android:contentDescription="Tăng âm lượng"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:padding="8dp"/>
+
+                <ImageButton
+                    android:id="@+id/volume_down_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:src="@android:drawable/ic_lock_silent_mode"
+                    android:contentDescription="Giảm âm lượng"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:padding="8dp"/>
+            </LinearLayout>
+
+            <!-- Brightness Controls (Right half of 30%) -->
+            <LinearLayout
+                android:id="@+id/brightness_controls"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="center"
+                app:layout_constraintWidth_percent="0.5"
+                app:layout_constraintStart_toEndOf="@+id/volume_controls"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent">
+
+                <ImageButton
+                    android:id="@+id/brightness_up_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:src="@android:drawable/ic_menu_edit"
+                    android:contentDescription="Tăng độ sáng"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:padding="8dp"/>
+
+                <ImageButton
+                    android:id="@+id/brightness_down_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:src="@android:drawable/ic_menu_close_clear_cancel"
+                    android:contentDescription="Giảm độ sáng"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:padding="8dp"/>
+            </LinearLayout>
+
+            <!-- Settings Button (Top right corner of the 30% area) -->
+            <ImageButton
+                android:id="@+id/settings_button"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@android:drawable/ic_menu_manage"
+                android:contentDescription="Cài đặt Launcher"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_margin="8dp"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- App Grid Area (3/4 screen height) -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/app_grid_recycler_view"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintHeight_percent="0.75"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/top_widget_area"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:padding="8dp"
+        tools:listitem="@layout/app_item" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

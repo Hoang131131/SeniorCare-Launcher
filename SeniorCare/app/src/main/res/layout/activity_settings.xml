@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="ntu.edu.seniorcare.SettingsActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cài đặt Launcher"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Kích cỡ Icon -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Kích cỡ Icon:"
+            android:textSize="18sp"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
+
+            <SeekBar
+                android:id="@+id/icon_size_seek_bar"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:max="100"
+                android:progress="50" />
+
+            <TextView
+                android:id="@+id/current_icon_size_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="50%"
+                android:textSize="16sp"
+                android:layout_marginStart="8dp" />
+        </LinearLayout>
+
+
+        <!-- Kích cỡ Chữ -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Kích cỡ Chữ:"
+            android:textSize="18sp"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
+
+            <SeekBar
+                android:id="@+id/text_size_seek_bar"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:max="100"
+                android:progress="50" />
+
+            <TextView
+                android:id="@+id/current_text_size_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="50%"
+                android:textSize="16sp"
+                android:layout_marginStart="8dp" />
+        </LinearLayout>
+
+        <!-- Chọn số cột -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Số cột ứng dụng:"
+            android:textSize="18sp"
+            android:layout_marginBottom="8dp" />
+
+        <RadioGroup
+            android:id="@+id/column_radio_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <RadioButton
+                android:id="@+id/radio_3_columns"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="3 Cột"
+                android:textSize="16sp"
+                android:layout_marginEnd="16dp"/>
+
+            <RadioButton
+                android:id="@+id/radio_4_columns"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="4 Cột"
+                android:textSize="16sp" />
+        </RadioGroup>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/darker_gray"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Danh sách ứng dụng đã thêm -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Ứng dụng trong Launcher:"
+                android:textSize="18sp" />
+
+            <Button
+                android:id="@+id/add_apps_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Thêm Ứng dụng"
+                android:backgroundTint="@color/design_default_color_primary"
+                android:textColor="@android:color/white" />
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/selected_apps_recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:layout_marginBottom="16dp"
+            android:orientation="horizontal"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/app_item" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/darker_gray"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Nút Mở Danh bạ gốc -->
+        <Button
+            android:id="@+id/open_contacts_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Mở Danh bạ gốc của máy"
+            android:layout_marginBottom="12dp"
+            style="@style/Widget.AppCompat.Button.Colored" />
+
+        <!-- Nút Mở Cài đặt Font chữ -->
+        <Button
+            android:id="@+id/open_font_settings_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Mở Cài đặt Font chữ hệ thống"
+            android:layout_marginBottom="12dp"
+            style="@style/Widget.AppCompat.Button.Colored" />
+
+        <!-- Nút Đặt làm Launcher mặc định -->
+        <Button
+            android:id="@+id/set_default_launcher_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Đặt làm Launcher mặc định"
+            android:backgroundTint="#FF9800"
+            android:textColor="@android:color/white"
+            style="@style/Widget.AppCompat.Button.Colored" />
+
+    </LinearLayout>
+</ScrollView>
