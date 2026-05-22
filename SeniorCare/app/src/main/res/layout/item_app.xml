@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="8dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:background="?attr/selectableItemBackground">
+
+    <ImageView
+        android:id="@+id/app_icon_image_view"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:scaleType="fitCenter"
+        android:contentDescription="App Icon" />
+
+    <TextView
+        android:id="@+id/app_name_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="App Name"
+        android:textColor="@android:color/black"
+        android:textSize="14sp"
+        android:maxLines="2"
+        android:ellipsize="end"
+        android:gravity="center" />
+
+    <ImageView
+        android:id="@+id/notification_dot"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:layout_marginTop="-60dp"
+        android:layout_marginStart="30dp"
+        android:src="@drawable/ic_notification_dot"
+        android:visibility="gone"
+        android:contentDescription="Notification Dot" />
+
+</LinearLayout>

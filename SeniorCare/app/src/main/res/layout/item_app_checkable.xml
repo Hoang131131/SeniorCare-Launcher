@@ -4,27 +4,29 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:padding="8dp"
-    android:gravity="center_vertical">
+    android:gravity="center_vertical"
+    android:background="?attr/selectableItemBackground">
 
     <ImageView
-        android:id="@+id/installed_app_icon"
+        android:id="@+id/app_icon_image_view"
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_marginEnd="16dp"
-        android:src="@mipmap/ic_launcher" />
+        android:contentDescription="App Icon" />
 
     <TextView
-        android:id="@+id/installed_app_name"
+        android:id="@+id/app_name_text_view"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:textSize="16sp"
-        android:text="App Name"
-        android:textColor="@android:color/black"/>
+        android:textSize="18sp"
+        android:textColor="@android:color/black" />
 
     <CheckBox
-        android:id="@+id/installed_app_checkbox"
+        android:id="@+id/app_checkbox"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:focusable="false"
+        android:clickable="false" />
 
 </LinearLayout>

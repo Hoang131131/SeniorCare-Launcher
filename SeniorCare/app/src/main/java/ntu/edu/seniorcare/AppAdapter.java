@@ -2,6 +2,8 @@ package ntu.edu.seniorcare;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,8 +21,8 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.AppViewHolder> {
 
     private Context context;
     private List<AppInfo> appList;
-    private float iconSizeFactor = 1.0f;
-    private float textSizeFactor = 1.0f;
+    private float iconSizeFactor = 1.0f; // Default 100%
+    private float textSizeFactor = 1.0f; // Default 100%
 
     public AppAdapter(Context context, List<AppInfo> appList) {
         this.context = context;
@@ -42,26 +44,38 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.AppViewHolder> {
     @NonNull
     @Override
     public AppViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.app_item, parent, false);
+        View view = LayoutInflater.from(context).inflate(R.layout.item_app, parent, false);
         return new AppViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull AppViewHolder holder, int position) {
         AppInfo app = appList.get(position);
-        holder.appNameTextView.setText(app.getAppName());
-        holder.appIconImageView.setImageDrawable(app.getAppIcon());
+        holder.appName.setText(app.getAppName());
 
-        int baseIconSize = 64;
-        int newIconSize = (int) (baseIconSize * iconSizeFactor);
-        holder.appIconImageView.getLayoutParams().width = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, newIconSize, context.getResources().getDisplayMetrics());
-        holder.appIconImageView.getLayoutParams().height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, newIconSize, context.getResources().getDisplayMetrics());
-        holder.appIconImageView.requestLayout();
+        try {
+            PackageManager pm = context.getPackageManager();
+            Drawable appIcon = pm.getApplicationIcon(app.getPackageName());
+            holder.appIcon.setImageDrawable(appIcon);
+        } catch (PackageManager.NameNotFoundException e) {
+            holder.appIcon.setImageResource(android.R.drawable.sym_def_app_icon); // Fallback icon
+            e.printStackTrace();
+        }
 
-        float baseTextSizeSp = 14f;
-        holder.appNameTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, baseTextSizeSp * textSizeFactor);
+        // Apply dynamic icon size
+        // Use an existing dimension for the default size to scale from
+        int defaultIconSize = (int) context.getResources().getDimension(R.dimen.app_icon_default_size);
 
-        holder.notificationDot.setVisibility(View.GONE);
+        ViewGroup.LayoutParams layoutParams = holder.appIcon.getLayoutParams();
+        layoutParams.width = (int) (defaultIconSize * iconSizeFactor);
+        layoutParams.height = (int) (defaultIconSize * iconSizeFactor);
+        holder.appIcon.setLayoutParams(layoutParams);
+
+        // Apply dynamic text size
+        // Assuming a default text size (e.g., 14sp) to scale from
+        float defaultTextSizeSp = 14f;
+        holder.appName.setTextSize(TypedValue.COMPLEX_UNIT_SP, defaultTextSizeSp * textSizeFactor);
+
 
         holder.itemView.setOnClickListener(v -> {
             Intent intent = context.getPackageManager().getLaunchIntentForPackage(app.getPackageName());
@@ -80,14 +94,14 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.AppViewHolder> {
     }
 
     public static class AppViewHolder extends RecyclerView.ViewHolder {
-        ImageView appIconImageView;
-        TextView appNameTextView;
-        View notificationDot;
+        ImageView appIcon;
+        TextView appName;
+        ImageView notificationDot; // Still present for future notification logic
 
         public AppViewHolder(@NonNull View itemView) {
             super(itemView);
-            appIconImageView = itemView.findViewById(R.id.app_icon_image_view);
-            appNameTextView = itemView.findViewById(R.id.app_name_text_view);
+            appIcon = itemView.findViewById(R.id.app_icon_image_view);
+            appName = itemView.findViewById(R.id.app_name_text_view);
             notificationDot = itemView.findViewById(R.id.notification_dot);
         }
     }

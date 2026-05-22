@@ -124,33 +124,32 @@
                     android:layout_width="wrap_content"
                     android:layout_height="0dp"
                     android:layout_weight="1"
-                    android:src="@android:drawable/ic_menu_edit"
-                    android:contentDescription="Tăng độ sáng"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:padding="8dp"/>
+                    android:contentDescription="Tăng độ sáng"
+                    android:padding="8dp"
+                    android:src="@android:drawable/ic_menu_edit" />
 
                 <ImageButton
                     android:id="@+id/brightness_down_button"
                     android:layout_width="wrap_content"
                     android:layout_height="0dp"
                     android:layout_weight="1"
-                    android:src="@android:drawable/ic_menu_close_clear_cancel"
-                    android:contentDescription="Giảm độ sáng"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:padding="8dp"/>
+                    android:contentDescription="Giảm độ sáng"
+                    android:padding="8dp"
+                    android:src="@android:drawable/ic_menu_close_clear_cancel" />
+
+                <ImageButton
+                    android:id="@+id/settings_button"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_margin="8dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Cài đặt Launcher"
+                    android:src="@android:drawable/ic_menu_manage" />
             </LinearLayout>
 
             <!-- Settings Button (Top right corner of the 30% area) -->
-            <ImageButton
-                android:id="@+id/settings_button"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@android:drawable/ic_menu_manage"
-                android:contentDescription="Cài đặt Launcher"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                android:layout_margin="8dp"/>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
