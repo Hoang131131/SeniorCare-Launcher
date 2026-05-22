@@ -1,146 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <!-- Phần 1 (Top Bar) - Giữ nguyên như đã sửa ở Nhiệm vụ 2 -->
-    <LinearLayout
-        android:id="@+id/top_bar_container"
-        android:layout_width="0dp"
-        android:layout_height="90dp"
-        android:background="#FFC107"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <!-- Bên trái: Đồng hồ và Ngày/Tháng/Năm -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
-
-            <!-- Giờ:Phút -->
-            <TextClock
-                android:id="@+id/text_clock_time"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:format12Hour="hh:mm a"
-                android:format24Hour="HH:mm"
-                android:textSize="24sp"
-                android:textColor="@android:color/white"
-                android:textStyle="bold" />
-
-            <!-- Ngày/Tháng/Năm -->
-            <TextClock
-                android:id="@+id/text_clock_date"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:format12Hour="dd/MM/yyyy"
-                android:format24Hour="dd/MM/yyyy"
-                android:textSize="14sp"
-                android:textColor="@android:color/white" />
-
-        </LinearLayout>
-
-        <!-- Bên phải: 4 Icon cài đặt nhanh -->
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <!-- Icon Wifi -->
-            <ImageButton
-                android:id="@+id/btn_wifi"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Wifi Settings"
-                android:padding="8dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_wifi"
-                app:tint="@android:color/white" />
-
-            <!-- Icon Âm thanh -->
-            <ImageButton
-                android:id="@+id/btn_volume"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Volume Settings"
-                android:padding="8dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_volume"
-                app:tint="@android:color/white" />
-
-            <!-- Icon Độ sáng -->
-            <ImageButton
-                android:id="@+id/btn_brightness"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Brightness Settings"
-                android:padding="8dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_brightness"
-                app:tint="@android:color/white" />
-
-            <!-- Icon Chế độ máy bay -->
-            <ImageButton
-                android:id="@+id/btn_airplane_mode"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Airplane Mode"
-                android:padding="8dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_airplane_mode_off"
-                app:tint="@android:color/white" />
-
-        </LinearLayout>
-
-    </LinearLayout>
-
-    <!-- Phần 3 (Bottom Dock) -->
-    <LinearLayout
-        android:id="@+id/bottom_dock_container"
-        android:layout_width="0dp"
-        android:layout_height="90dp"
-        android:background="#2196F3"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Hello World!"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/bottom_dock_recycler_view"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            tools:listitem="@layout/app_item_layout" />
-
-    </LinearLayout>
-
-    <!-- Phần 2 (Middle - ViewPager2) -->
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/view_pager_middle"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/bottom_dock_container"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/top_bar_container"
-        app:layout_constraintVertical_bias="1.0" />
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
