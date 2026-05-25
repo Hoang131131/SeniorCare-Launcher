@@ -1,8 +1,6 @@
 package ntu.edu.seniorcare;
 
-import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
-
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -11,11 +9,14 @@ public class AppInfo implements Serializable {
     // transient modifier tells Gson to ignore this field during serialization/deserialization
     private transient Drawable appIcon;
     private String packageName;
+    private String className;
 
-    public AppInfo(String appName, Drawable appIcon, String packageName) {
+    // Chỉ giữ một constructor duy nhất
+    public AppInfo(String appName, Drawable appIcon, String packageName, String className) {
         this.appName = appName;
         this.appIcon = appIcon;
         this.packageName = packageName;
+        this.className = className;
     }
 
     public String getAppName() {
@@ -42,17 +43,33 @@ public class AppInfo implements Serializable {
         this.packageName = packageName;
     }
 
-    // Override equals and hashCode based on package name for proper list comparison
+    public String getClassName() {
+        return className;
+    }
+
+    public void setClassName(String className) {
+        this.className = className;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         AppInfo appInfo = (AppInfo) o;
-        return packageName.equals(appInfo.packageName);
+        return packageName.equals(appInfo.packageName) && className.equals(appInfo.className);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(packageName);
+        return Objects.hash(packageName, className);
+    }
+
+    @Override
+    public String toString() {
+        return "AppInfo{" +
+                "appName='" + appName + '\'' +
+                ", packageName='" + packageName + '\'' +
+                ", className='" + className + '\'' +
+                '}';
     }
 }

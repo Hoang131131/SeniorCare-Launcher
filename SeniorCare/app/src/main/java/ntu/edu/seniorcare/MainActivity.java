@@ -6,10 +6,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
+import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -122,19 +123,38 @@ public class MainActivity extends AppCompatActivity {
         if (selectedAppsJson != null && !selectedAppsJson.isEmpty() && !selectedAppsJson.equals("[]")) {
             Gson gson = new Gson();
             Type type = new TypeToken<ArrayList<AppInfo>>() {}.getType();
-            List<AppInfo> savedApps = gson.fromJson(selectedAppsJson, type);
+            List<AppInfo> savedApps = gson.fromJson(selectedAppsJson, type); // savedApps giờ là List<AppInfo> mà appIcon là null
 
             for (AppInfo savedApp : savedApps) {
+                // Tải icon cho từng savedApp
+                Drawable appIcon = null;
                 try {
-                    Intent launchIntent = pm.getLaunchIntentForPackage(savedApp.getPackageName());
-                    if (launchIntent != null) {
-                        ResolveInfo ri = pm.resolveActivity(launchIntent, 0);
-                        if (ri != null) {
-                            appList.add(new AppInfo(ri.loadLabel(pm).toString(), ri.loadIcon(pm), ri.activityInfo.packageName));
+                    // Kiểm tra xem đây có phải là ứng dụng nội bộ của chúng ta không
+                    if (savedApp.getPackageName().equals(getPackageName())) {
+                        if (savedApp.getClassName() != null) { // Đảm bảo className không null
+                            if (savedApp.getClassName().equals(SmsActivity.class.getName())) {
+                                appIcon = getResources().getDrawable(R.drawable.ic_message, null);
+                            } else if (savedApp.getClassName().equals(ContactsActivity.class.getName())) {
+                                appIcon = getResources().getDrawable(R.drawable.ic_contacts, null);
+                            }
                         }
                     }
+                    // Nếu không phải ứng dụng nội bộ hoặc chưa có icon, thử tải từ PackageManager
+                    if (appIcon == null) {
+                        appIcon = pm.getApplicationIcon(savedApp.getPackageName());
+                    }
+                    // Gán icon đã tải vào đối tượng savedApp
+                    savedApp.setAppIcon(appIcon);
+                    appList.add(savedApp); // Thêm đối tượng savedApp đã có icon vào appList
+                } catch (PackageManager.NameNotFoundException e) {
+                    Log.e("MainActivity", "App icon not found for package: " + savedApp.getPackageName() + ". Using default.", e);
+                    // Gán icon mặc định nếu không tìm thấy
+                    savedApp.setAppIcon(getResources().getDrawable(android.R.drawable.sym_def_app_icon, null));
+                    appList.add(savedApp);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    Log.e("MainActivity", "Error loading app icon for package: " + savedApp.getPackageName() + ". Using default.", e);
+                    savedApp.setAppIcon(getResources().getDrawable(android.R.drawable.sym_def_app_icon, null));
+                    appList.add(savedApp);
                 }
             }
         }

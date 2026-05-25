@@ -21,7 +21,7 @@ public class SelectedAppAdapter extends RecyclerView.Adapter<SelectedAppAdapter.
 
     private final Context context;
     private final List<AppInfo> appList;
-    private final OnAppRemovedListener listener;
+    private final OnAppRemovedListener listener; // Giữ lại listener như bạn đã khai báo
 
     public interface OnAppRemovedListener {
         void onAppRemoved(AppInfo app);
@@ -30,13 +30,12 @@ public class SelectedAppAdapter extends RecyclerView.Adapter<SelectedAppAdapter.
     public SelectedAppAdapter(Context context, List<AppInfo> appList, OnAppRemovedListener listener) {
         this.context = context;
         this.appList = appList;
-        this.listener = listener;
+        this.listener = listener; // Khởi tạo listener
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // Corrected to use item_selected_app.xml
         View view = LayoutInflater.from(context).inflate(R.layout.item_selected_app, parent, false);
         return new ViewHolder(view);
     }
@@ -46,14 +45,46 @@ public class SelectedAppAdapter extends RecyclerView.Adapter<SelectedAppAdapter.
         AppInfo app = appList.get(position);
         holder.appName.setText(app.getAppName());
 
-        try {
-            PackageManager pm = context.getPackageManager();
-            Drawable appIcon = pm.getApplicationIcon(app.getPackageName());
-            holder.appIcon.setImageDrawable(appIcon);
-        } catch (PackageManager.NameNotFoundException e) {
-            holder.appIcon.setImageResource(android.R.drawable.sym_def_app_icon); // Fallback icon
-            e.printStackTrace();
+        Drawable appIconDrawable = app.getAppIcon(); // Lấy icon từ AppInfo đã được tải (có thể là null)
+        if (appIconDrawable == null) { // Nếu icon là null (chưa được tải hoặc transient)
+            // Kiểm tra xem đây có phải là ứng dụng nội bộ của chúng ta không
+            if (app.getPackageName().equals(context.getPackageName())) {
+                if (app.getClassName() != null) {
+                    if (app.getClassName().equals(SmsActivity.class.getName())) {
+                        try {
+                            appIconDrawable = context.getResources().getDrawable(R.drawable.ic_message, null);
+                        } catch (android.content.res.Resources.NotFoundException e) {
+                            appIconDrawable = context.getResources().getDrawable(android.R.drawable.sym_def_app_icon, null);
+                            e.printStackTrace();
+                        }
+                    } else if (app.getClassName().equals(ContactsActivity.class.getName())) {
+                        try {
+                            appIconDrawable = context.getResources().getDrawable(R.drawable.ic_contacts, null);
+                        } catch (android.content.res.Resources.NotFoundException e) {
+                            appIconDrawable = context.getResources().getDrawable(android.R.drawable.sym_def_app_icon, null);
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+            // Nếu vẫn chưa có icon (hoặc là ứng dụng bên ngoài), thử tải từ PackageManager
+            if (appIconDrawable == null) {
+                try {
+                    PackageManager pm = context.getPackageManager();
+                    appIconDrawable = pm.getApplicationIcon(app.getPackageName());
+                } catch (PackageManager.NameNotFoundException e) {
+                    // Fallback nếu không tìm thấy icon hoặc ứng dụng
+                    appIconDrawable = context.getResources().getDrawable(android.R.drawable.sym_def_app_icon, null);
+                }
+            }
+            // Cập nhật lại icon vào đối tượng AppInfo để không cần tải lại nữa trong các lần onBindViewHolder tiếp theo
+            if (appIconDrawable != null) {
+                app.setAppIcon(appIconDrawable);
+            }
         }
+        // Gán icon đã có hoặc đã tải vào ImageView
+        holder.appIcon.setImageDrawable(appIconDrawable);
+
 
         holder.itemView.setOnLongClickListener(v -> {
             new AlertDialog.Builder(context)
@@ -69,8 +100,12 @@ public class SelectedAppAdapter extends RecyclerView.Adapter<SelectedAppAdapter.
             return true;
         });
 
+        // Giữ nguyên onClickListener như phiên bản của bạn, nhưng cần lưu ý:
+        // Intent này sử dụng getLaunchIntentForPackage(), cái này có thể KHÔNG hoạt động
+        // cho các Activity nội bộ như SmsActivity và ContactsActivity (vì chúng không
+        // có LAUNCHER category). Nếu bạn muốn mở từ đây, bạn cần sửa Intent này.
+        // Tuy nhiên, ưu tiên hiện tại là fix lỗi icon.
         holder.itemView.setOnClickListener(v -> {
-            // Optional: Launch app on short click, or do nothing as per requirement
             Intent intent = context.getPackageManager().getLaunchIntentForPackage(app.getPackageName());
             if (intent != null) {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -92,7 +127,6 @@ public class SelectedAppAdapter extends RecyclerView.Adapter<SelectedAppAdapter.
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            // Corrected to use IDs from item_selected_app.xml
             appIcon = itemView.findViewById(R.id.selected_app_icon);
             appName = itemView.findViewById(R.id.selected_app_name);
         }

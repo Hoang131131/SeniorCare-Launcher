@@ -14,26 +14,20 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 public class InstalledAppAdapter extends RecyclerView.Adapter<InstalledAppAdapter.ViewHolder> {
 
-    private final Context context;
-    private final List<AppInfo> appList;
-    private final List<AppInfo> selectedApps; // List to hold currently selected apps in the dialog
+    private Context context;
+    private List<AppInfo> appList;
+    private Set<String> selectedAppIdentifiers;
 
-    public InstalledAppAdapter(Context context, List<AppInfo> appList, Set<String> preSelectedPackageNames) {
+    public InstalledAppAdapter(Context context, List<AppInfo> appList, Set<String> currentlySelectedAppIdentifiers) {
         this.context = context;
         this.appList = appList;
-        this.selectedApps = new ArrayList<>();
-
-        // Initialize selectedApps based on preSelectedPackageNames
-        for (AppInfo app : appList) {
-            if (preSelectedPackageNames.contains(app.getPackageName())) {
-                selectedApps.add(app);
-            }
-        }
+        this.selectedAppIdentifiers = new HashSet<>(currentlySelectedAppIdentifiers);
     }
 
     @NonNull
@@ -48,27 +42,45 @@ public class InstalledAppAdapter extends RecyclerView.Adapter<InstalledAppAdapte
         AppInfo app = appList.get(position);
         holder.appName.setText(app.getAppName());
 
-        try {
-            PackageManager pm = context.getPackageManager();
-            Drawable appIcon = pm.getApplicationIcon(app.getPackageName());
-            holder.appIcon.setImageDrawable(appIcon);
-        } catch (PackageManager.NameNotFoundException e) {
-            holder.appIcon.setImageResource(android.R.drawable.sym_def_app_icon); // Fallback icon
-            e.printStackTrace();
+        Drawable appIconDrawable = app.getAppIcon();
+        if (appIconDrawable == null) {
+            if (app.getPackageName().equals(context.getPackageName())) {
+                if (app.getClassName() != null) {
+                    if (app.getClassName().equals(SmsActivity.class.getName())) {
+                        appIconDrawable = context.getResources().getDrawable(R.drawable.ic_message, null);
+                    } else if (app.getClassName().equals(ContactsActivity.class.getName())) {
+                        appIconDrawable = context.getResources().getDrawable(R.drawable.ic_contacts, null);
+                    }
+                }
+            }
+            if (appIconDrawable == null) {
+                try {
+                    PackageManager pm = context.getPackageManager();
+                    appIconDrawable = pm.getApplicationIcon(app.getPackageName());
+                } catch (PackageManager.NameNotFoundException e) {
+                    appIconDrawable = context.getResources().getDrawable(android.R.drawable.sym_def_app_icon, null);
+                }
+            }
+            if (appIconDrawable != null) {
+                app.setAppIcon(appIconDrawable);
+            }
         }
+        holder.appIcon.setImageDrawable(appIconDrawable);
 
-        // Set checkbox state based on whether the app is in selectedApps
-        holder.appCheckBox.setChecked(selectedApps.contains(app));
+        String appIdentifier = app.getPackageName() + "/" + app.getClassName();
+        holder.checkBox.setOnCheckedChangeListener(null);
+        holder.checkBox.setChecked(selectedAppIdentifiers.contains(appIdentifier));
+
+        holder.checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                selectedAppIdentifiers.add(appIdentifier);
+            } else {
+                selectedAppIdentifiers.remove(appIdentifier);
+            }
+        });
 
         holder.itemView.setOnClickListener(v -> {
-            holder.appCheckBox.setChecked(!holder.appCheckBox.isChecked()); // Toggle checkbox
-            if (holder.appCheckBox.isChecked()) {
-                if (!selectedApps.contains(app)) {
-                    selectedApps.add(app);
-                }
-            } else {
-                selectedApps.remove(app);
-            }
+            holder.checkBox.setChecked(!holder.checkBox.isChecked());
         });
     }
 
@@ -78,19 +90,27 @@ public class InstalledAppAdapter extends RecyclerView.Adapter<InstalledAppAdapte
     }
 
     public List<AppInfo> getSelectedApps() {
-        return selectedApps;
+        List<AppInfo> selected = new ArrayList<>();
+        for (AppInfo app : appList) {
+            String appIdentifier = app.getPackageName() + "/" + app.getClassName();
+            if (selectedAppIdentifiers.contains(appIdentifier)) {
+                // Tạo một AppInfo MỚI, truyền null cho icon. Gson sẽ bỏ qua nó vì transient.
+                selected.add(new AppInfo(app.getAppName(), null, app.getPackageName(), app.getClassName()));
+            }
+        }
+        return selected;
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView appIcon;
         TextView appName;
-        CheckBox appCheckBox;
+        CheckBox checkBox;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             appIcon = itemView.findViewById(R.id.app_icon_image_view);
             appName = itemView.findViewById(R.id.app_name_text_view);
-            appCheckBox = itemView.findViewById(R.id.app_checkbox);
+            checkBox = itemView.findViewById(R.id.app_checkbox);
         }
     }
 }

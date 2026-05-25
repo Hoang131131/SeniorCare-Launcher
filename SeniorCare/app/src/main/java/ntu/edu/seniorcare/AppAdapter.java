@@ -19,10 +19,16 @@ import java.util.List;
 
 public class AppAdapter extends RecyclerView.Adapter<AppAdapter.AppViewHolder> {
 
+    public interface OnClickListener {
+        void onClick(int position, AppInfo appInfo);
+    }
+
+    private OnClickListener onClickListener;
+
     private Context context;
     private List<AppInfo> appList;
-    private float iconSizeFactor = 1.0f; // Default 100%
-    private float textSizeFactor = 1.0f; // Default 100%
+    private float iconSizeFactor = 1.0f;
+    private float textSizeFactor = 1.0f;
 
     public AppAdapter(Context context, List<AppInfo> appList) {
         this.context = context;
@@ -41,6 +47,17 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.AppViewHolder> {
         this.textSizeFactor = textSizeFactor;
     }
 
+    public void setOnClickListener(OnClickListener onClickListener) {
+        this.onClickListener = onClickListener;
+    }
+
+    public AppInfo getItem(int position) {
+        if (position >= 0 && position < appList.size()) {
+            return appList.get(position);
+        }
+        return null;
+    }
+
     @NonNull
     @Override
     public AppViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -53,37 +70,77 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.AppViewHolder> {
         AppInfo app = appList.get(position);
         holder.appName.setText(app.getAppName());
 
-        try {
-            PackageManager pm = context.getPackageManager();
-            Drawable appIcon = pm.getApplicationIcon(app.getPackageName());
-            holder.appIcon.setImageDrawable(appIcon);
-        } catch (PackageManager.NameNotFoundException e) {
-            holder.appIcon.setImageResource(android.R.drawable.sym_def_app_icon); // Fallback icon
-            e.printStackTrace();
+        Drawable appIconDrawable = app.getAppIcon();
+        if (appIconDrawable == null) {
+            if (app.getPackageName().equals(context.getPackageName())) {
+                if (app.getClassName() != null) {
+                    if (app.getClassName().equals(SmsActivity.class.getName())) {
+                        appIconDrawable = context.getResources().getDrawable(R.drawable.ic_message, null);
+                    } else if (app.getClassName().equals(ContactsActivity.class.getName())) {
+                        appIconDrawable = context.getResources().getDrawable(R.drawable.ic_contacts, null);
+                    }
+                }
+            }
+            if (appIconDrawable == null) {
+                try {
+                    PackageManager pm = context.getPackageManager();
+                    appIconDrawable = pm.getApplicationIcon(app.getPackageName());
+                } catch (PackageManager.NameNotFoundException e) {
+                    appIconDrawable = context.getResources().getDrawable(android.R.drawable.sym_def_app_icon, null);
+                }
+            }
+            if (appIconDrawable != null) {
+                app.setAppIcon(appIconDrawable);
+            }
         }
+        holder.appIcon.setImageDrawable(appIconDrawable);
 
-        // Apply dynamic icon size
-        // Use an existing dimension for the default size to scale from
         int defaultIconSize = (int) context.getResources().getDimension(R.dimen.app_icon_default_size);
-
         ViewGroup.LayoutParams layoutParams = holder.appIcon.getLayoutParams();
         layoutParams.width = (int) (defaultIconSize * iconSizeFactor);
         layoutParams.height = (int) (defaultIconSize * iconSizeFactor);
         holder.appIcon.setLayoutParams(layoutParams);
 
-        // Apply dynamic text size
-        // Assuming a default text size (e.g., 14sp) to scale from
         float defaultTextSizeSp = 14f;
         holder.appName.setTextSize(TypedValue.COMPLEX_UNIT_SP, defaultTextSizeSp * textSizeFactor);
 
-
         holder.itemView.setOnClickListener(v -> {
-            Intent intent = context.getPackageManager().getLaunchIntentForPackage(app.getPackageName());
-            if (intent != null) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                context.startActivity(intent);
-            } else {
-                Toast.makeText(context, "Không thể mở ứng dụng: " + app.getAppName(), Toast.LENGTH_SHORT).show();
+            AppInfo clickedApp = getItem(holder.getAdapterPosition());
+            if (clickedApp != null) {
+                if (onClickListener != null) {
+                    onClickListener.onClick(holder.getAdapterPosition(), clickedApp);
+                } else {
+                    Intent launchIntent = null;
+
+                    // Kiểm tra nếu đây là ứng dụng nội bộ của chúng ta
+                    if (clickedApp.getPackageName().equals(context.getPackageName()) && clickedApp.getClassName() != null) {
+                        // Khởi chạy ứng dụng nội bộ bằng cách chỉ định rõ ràng component
+                        launchIntent = new Intent();
+                        launchIntent.setClassName(clickedApp.getPackageName(), clickedApp.getClassName());
+                    } else {
+                        // Đối với ứng dụng bên ngoài, cố gắng lấy LAUNCHER intent mặc định
+                        launchIntent = context.getPackageManager().getLaunchIntentForPackage(clickedApp.getPackageName());
+                        // Nếu vẫn không tìm thấy launcher intent (hiếm khi xảy ra với ứng dụng hợp lệ)
+                        if (launchIntent == null && clickedApp.getClassName() != null) {
+                            // Thử tạo intent với ACTION_MAIN và setClassName
+                            launchIntent = new Intent(Intent.ACTION_MAIN);
+                            launchIntent.setClassName(clickedApp.getPackageName(), clickedApp.getClassName());
+                            launchIntent.addCategory(Intent.CATEGORY_LAUNCHER); // Chỉ thêm LAUNCHER nếu ta biết nó là một launcher activity
+                        }
+                    }
+
+                    if (launchIntent != null) {
+                        launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+                        try {
+                            v.getContext().startActivity(launchIntent);
+                        } catch (Exception e) {
+                            Toast.makeText(v.getContext(), "Không thể mở ứng dụng: " + clickedApp.getAppName() + ". Lỗi: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                            e.printStackTrace();
+                        }
+                    } else {
+                        Toast.makeText(v.getContext(), "Không thể tìm thấy ứng dụng để mở: " + clickedApp.getAppName(), Toast.LENGTH_SHORT).show();
+                    }
+                }
             }
         });
     }
@@ -96,7 +153,7 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.AppViewHolder> {
     public static class AppViewHolder extends RecyclerView.ViewHolder {
         ImageView appIcon;
         TextView appName;
-        ImageView notificationDot; // Still present for future notification logic
+        ImageView notificationDot;
 
         public AppViewHolder(@NonNull View itemView) {
             super(itemView);

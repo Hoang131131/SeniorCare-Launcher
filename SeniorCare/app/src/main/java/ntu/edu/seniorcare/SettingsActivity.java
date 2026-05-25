@@ -3,13 +3,13 @@ package ntu.edu.seniorcare;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -31,7 +31,6 @@ import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -84,7 +83,7 @@ public class SettingsActivity extends AppCompatActivity {
         iconSizeSeekBar.setOnSeekBarChangeListener(new SimpleSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                // Do nothing here, save onStopTrackingTouch
+                ((TextView)findViewById(R.id.icon_size_value_text_view)).setText(progress + "%");
             }
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
@@ -96,7 +95,7 @@ public class SettingsActivity extends AppCompatActivity {
         textSizeSeekBar.setOnSeekBarChangeListener(new SimpleSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                // Do nothing here, save onStopTrackingTouch
+                ((TextView)findViewById(R.id.text_size_value_text_view)).setText(progress + "%");
             }
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
@@ -121,11 +120,11 @@ public class SettingsActivity extends AppCompatActivity {
         manageAppsButton.setOnClickListener(v -> showAppSelectionDialog());
 
         contactsButton.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_VIEW, android.provider.ContactsContract.Contacts.CONTENT_URI);
+            Intent intent = new Intent(this, ContactsActivity.class);
             try {
                 startActivity(intent);
             } catch (ActivityNotFoundException e) {
-                Toast.makeText(this, "Không thể mở ứng dụng danh bạ.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Không thể mở ứng dụng danh bạ nội bộ.", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -155,7 +154,10 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void loadSettings() {
+        ((TextView)findViewById(R.id.icon_size_value_text_view)).setText(SettingsUtils.getIconSizePercentage(this) + "%");
         iconSizeSeekBar.setProgress(SettingsUtils.getIconSizePercentage(this));
+
+        ((TextView)findViewById(R.id.text_size_value_text_view)).setText(SettingsUtils.getTextSizePercentage(this) + "%");
         textSizeSeekBar.setProgress(SettingsUtils.getTextSizePercentage(this));
 
         int numColumns = SettingsUtils.getNumColumns(this);
@@ -182,16 +184,32 @@ public class SettingsActivity extends AppCompatActivity {
 
             PackageManager pm = getPackageManager();
             for (AppInfo savedApp : savedApps) {
+                Drawable appIcon = null;
                 try {
-                    Intent launchIntent = pm.getLaunchIntentForPackage(savedApp.getPackageName());
-                    if (launchIntent != null) {
-                        ResolveInfo ri = pm.resolveActivity(launchIntent, 0);
-                        if (ri != null) {
-                            tempLoadedApps.add(new AppInfo(ri.loadLabel(pm).toString(), ri.loadIcon(pm), ri.activityInfo.packageName));
+                    // Kiểm tra xem đây có phải là ứng dụng nội bộ của chúng ta không
+                    if (savedApp.getPackageName().equals(getPackageName())) {
+                        if (savedApp.getClassName() != null) { // Đảm bảo className không null
+                            if (savedApp.getClassName().equals(SmsActivity.class.getName())) {
+                                appIcon = getResources().getDrawable(R.drawable.ic_message, null);
+                            } else if (savedApp.getClassName().equals(ContactsActivity.class.getName())) {
+                                appIcon = getResources().getDrawable(R.drawable.ic_contacts, null);
+                            }
                         }
                     }
+                    // Nếu không phải ứng dụng nội bộ hoặc chưa có icon, thử tải từ PackageManager
+                    if (appIcon == null) {
+                        appIcon = pm.getApplicationIcon(savedApp.getPackageName());
+                    }
+                    savedApp.setAppIcon(appIcon); // Gán icon đã tải vào đối tượng savedApp
+                    tempLoadedApps.add(savedApp);
+                } catch (PackageManager.NameNotFoundException e) {
+                    Log.e("SettingsActivity", "App icon not found for package: " + savedApp.getPackageName() + ". Using default.", e);
+                    savedApp.setAppIcon(getResources().getDrawable(android.R.drawable.sym_def_app_icon, null));
+                    tempLoadedApps.add(savedApp);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    Log.e("SettingsActivity", "Error loading app icon for package: " + savedApp.getPackageName() + ". Using default.", e);
+                    savedApp.setAppIcon(getResources().getDrawable(android.R.drawable.sym_def_app_icon, null));
+                    tempLoadedApps.add(savedApp);
                 }
             }
         }
@@ -203,11 +221,8 @@ public class SettingsActivity extends AppCompatActivity {
 
     private void saveSelectedApps() {
         Gson gson = new Gson();
-        List<AppInfo> appsToSave = new ArrayList<>();
-        for (AppInfo app : selectedAppsList) {
-            appsToSave.add(new AppInfo(app.getAppName(), null, app.getPackageName()));
-        }
-        String json = gson.toJson(appsToSave);
+        // Gson sẽ tự động bỏ qua trường transient Drawable appIcon
+        String json = gson.toJson(selectedAppsList);
         SettingsUtils.saveSelectedAppsJson(this, json);
         sendUpdateBroadcast();
     }
@@ -229,12 +244,12 @@ public class SettingsActivity extends AppCompatActivity {
         builder.setView(dialogView);
 
         List<AppInfo> allInstalledApps = loadAllApps();
-        Set<String> currentlySelectedPackages = new HashSet<>();
+        Set<String> currentlySelectedAppIdentifiers = new HashSet<>();
         for (AppInfo app : selectedAppsList) {
-            currentlySelectedPackages.add(app.getPackageName());
+            currentlySelectedAppIdentifiers.add(app.getPackageName() + "/" + app.getClassName());
         }
 
-        InstalledAppAdapter installedAppAdapter = new InstalledAppAdapter(this, allInstalledApps, currentlySelectedPackages);
+        InstalledAppAdapter installedAppAdapter = new InstalledAppAdapter(this, allInstalledApps, currentlySelectedAppIdentifiers);
         allAppsRecyclerView.setAdapter(installedAppAdapter);
 
         builder.setPositiveButton("Thêm", (dialog, which) -> {
@@ -254,22 +269,19 @@ public class SettingsActivity extends AppCompatActivity {
         List<AppInfo> apps = new ArrayList<>();
         PackageManager pm = getPackageManager();
 
-        // Danh sách các package CẦN loại trừ
         Set<String> excludedPackages = new HashSet<>();
-        excludedPackages.add(getPackageName()); // Loại trừ chính Launcher của chúng ta
-        // Các gói hệ thống và tiện ích mà người dùng thường không muốn hiển thị trên Launcher
-        excludedPackages.add("com.android.stk"); // SIM Toolkit
-        excludedPackages.add("com.samsung.android.app.simcardmanager"); // Samsung SIM Manager
-        excludedPackages.add("com.qualcomm.qti.simcontacts"); // Qualcomm SIM Contacts
-        excludedPackages.add("com.android.settings"); // Ứng dụng Cài đặt (người dùng có thể mở bằng nút chuyên dụng)
-        excludedPackages.add("com.google.android.inputmethod.latin"); // Bàn phím
-        excludedPackages.add("com.google.android.gms"); // Dịch vụ Google Play (không phải ứng dụng để khởi chạy)
-        excludedPackages.add("com.android.systemui"); // Giao diện người dùng hệ thống
-        excludedPackages.add("com.google.android.packageinstaller"); // Trình cài đặt gói
-        excludedPackages.add("com.android.providers.media"); // Bộ lưu trữ phương tiện
-        excludedPackages.add("com.android.providers.downloads"); // Trình quản lý tải xuống
-        excludedPackages.add("com.android.documentsui"); // Ứng dụng Tệp
-        // Các Launcher mặc định khác (để tránh xung đột hoặc hiển thị bản thân chúng)
+        excludedPackages.add(getPackageName());
+        excludedPackages.add("com.android.stk");
+        excludedPackages.add("com.samsung.android.app.simcardmanager");
+        excludedPackages.add("com.qualcomm.qti.simcontacts");
+        excludedPackages.add("com.android.settings");
+        excludedPackages.add("com.google.android.inputmethod.latin");
+        excludedPackages.add("com.google.android.gms");
+        excludedPackages.add("com.android.systemui");
+        excludedPackages.add("com.google.android.packageinstaller");
+        excludedPackages.add("com.android.providers.media");
+        excludedPackages.add("com.android.providers.downloads");
+        excludedPackages.add("com.android.documentsui");
         excludedPackages.add("com.android.launcher3");
         excludedPackages.add("com.google.android.apps.nexuslauncher");
         excludedPackages.add("com.samsung.android.app.homelauncher");
@@ -278,9 +290,8 @@ public class SettingsActivity extends AppCompatActivity {
         excludedPackages.add("com.oneplus.hydrogen.launcher");
         excludedPackages.add("com.oppo.launcher");
         excludedPackages.add("com.vivo.launcher");
-        excludedPackages.add("android"); // Tiến trình hệ thống Android
+        excludedPackages.add("android");
 
-        // Intent để truy vấn các ứng dụng có thể khởi chạy
         Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
         mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
 
@@ -288,20 +299,43 @@ public class SettingsActivity extends AppCompatActivity {
 
         for (ResolveInfo ri : resolveInfoList) {
             String packageName = ri.activityInfo.packageName;
+            String className = ri.activityInfo.name;
 
-            // Chỉ thêm ứng dụng nếu nó KHÔNG nằm trong danh sách loại trừ
             if (!excludedPackages.contains(packageName)) {
                 String appName = ri.loadLabel(pm).toString();
                 Drawable icon = ri.loadIcon(pm);
-                apps.add(new AppInfo(appName, icon, packageName));
+                apps.add(new AppInfo(appName, icon, packageName, className));
             }
         }
 
-        // Sắp xếp danh sách theo tên ứng dụng
+        // THÊM CÁC ỨNG DỤNG NỘI BỘ MỘT CÁCH THỦ CÔNG
+        String smsAppName = "Tin nhắn";
+        String smsPackageName = getPackageName();
+        String smsClassName = SmsActivity.class.getName();
+        Drawable smsAppIcon = null;
+        try {
+            smsAppIcon = getResources().getDrawable(R.drawable.ic_message, null);
+        } catch (android.content.res.Resources.NotFoundException e) {
+            Log.e("SettingsActivity", "ic_message drawable not found", e);
+            smsAppIcon = getResources().getDrawable(android.R.drawable.sym_def_app_icon, null);
+        }
+        apps.add(new AppInfo(smsAppName, smsAppIcon, smsPackageName, smsClassName));
+
+        String contactsAppName = "Danh bạ";
+        String contactsPackageName = getPackageName();
+        String contactsClassName = ContactsActivity.class.getName();
+        Drawable contactsAppIcon = null;
+        try {
+            contactsAppIcon = getResources().getDrawable(R.drawable.ic_contacts, null);
+        } catch (android.content.res.Resources.NotFoundException e) {
+            Log.e("SettingsActivity", "ic_contacts drawable not found", e);
+            contactsAppIcon = getResources().getDrawable(android.R.drawable.sym_def_app_icon, null);
+        }
+        apps.add(new AppInfo(contactsAppName, contactsAppIcon, contactsPackageName, contactsClassName));
+
         Collections.sort(apps, (app1, app2) -> app1.getAppName().compareToIgnoreCase(app2.getAppName()));
         return apps;
     }
-
 
     private void sendUpdateBroadcast() {
         Intent intent = new Intent(ACTION_UPDATE_LAUNCHER);
