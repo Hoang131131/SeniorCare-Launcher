@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -70,6 +71,7 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.AppViewHolder> {
         AppInfo app = appList.get(position);
         holder.appName.setText(app.getAppName());
 
+        // ... (phần code xử lý icon không đổi) ...
         Drawable appIconDrawable = app.getAppIcon();
         if (appIconDrawable == null) {
             if (app.getPackageName().equals(context.getPackageName())) {
@@ -104,43 +106,56 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.AppViewHolder> {
         float defaultTextSizeSp = 14f;
         holder.appName.setTextSize(TypedValue.COMPLEX_UNIT_SP, defaultTextSizeSp * textSizeFactor);
 
+
         holder.itemView.setOnClickListener(v -> {
+            Log.d("AppAdapter", "Item clicked at position: " + holder.getAdapterPosition());
             AppInfo clickedApp = getItem(holder.getAdapterPosition());
             if (clickedApp != null) {
+                Log.d("AppAdapter", "Clicked AppInfo: " + clickedApp.getAppName() + " | Package: " + clickedApp.getPackageName() + " | Class: " + clickedApp.getClassName());
+
                 if (onClickListener != null) {
                     onClickListener.onClick(holder.getAdapterPosition(), clickedApp);
                 } else {
                     Intent launchIntent = null;
 
-                    // Kiểm tra nếu đây là ứng dụng nội bộ của chúng ta
                     if (clickedApp.getPackageName().equals(context.getPackageName()) && clickedApp.getClassName() != null) {
-                        // Khởi chạy ứng dụng nội bộ bằng cách chỉ định rõ ràng component
+                        Log.d("AppAdapter", "Attempting to launch internal app: " + clickedApp.getAppName());
                         launchIntent = new Intent();
                         launchIntent.setClassName(clickedApp.getPackageName(), clickedApp.getClassName());
+                        launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        launchIntent.addCategory(Intent.CATEGORY_DEFAULT); // Thêm dòng này
                     } else {
-                        // Đối với ứng dụng bên ngoài, cố gắng lấy LAUNCHER intent mặc định
+                        Log.d("AppAdapter", "Attempting to launch external app: " + clickedApp.getAppName());
                         launchIntent = context.getPackageManager().getLaunchIntentForPackage(clickedApp.getPackageName());
-                        // Nếu vẫn không tìm thấy launcher intent (hiếm khi xảy ra với ứng dụng hợp lệ)
                         if (launchIntent == null && clickedApp.getClassName() != null) {
-                            // Thử tạo intent với ACTION_MAIN và setClassName
+                            Log.d("AppAdapter", "No direct launcher intent, trying ACTION_MAIN for external app.");
                             launchIntent = new Intent(Intent.ACTION_MAIN);
                             launchIntent.setClassName(clickedApp.getPackageName(), clickedApp.getClassName());
-                            launchIntent.addCategory(Intent.CATEGORY_LAUNCHER); // Chỉ thêm LAUNCHER nếu ta biết nó là một launcher activity
+                            launchIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+                            launchIntent.addCategory(Intent.CATEGORY_DEFAULT); // Thêm dòng này
+                            launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         }
                     }
 
                     if (launchIntent != null) {
-                        launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+                        Log.d("AppAdapter", "Launch Intent created. Component: " + launchIntent.getComponent() + " | Flags: " + launchIntent.getFlags() + " | Categories: " + launchIntent.getCategories()); // Cập nhật log để hiển thị categories
+                        // flags này chỉ cần thiết lập 1 lần, bạn đã thêm ở trên rồi, nên bỏ dòng này đi để tránh trùng lặp
+                        // launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+
                         try {
                             v.getContext().startActivity(launchIntent);
+                            Log.d("AppAdapter", "startActivity called for: " + clickedApp.getAppName());
                         } catch (Exception e) {
+                            Log.e("AppAdapter", "Failed to start activity for " + clickedApp.getAppName(), e);
                             Toast.makeText(v.getContext(), "Không thể mở ứng dụng: " + clickedApp.getAppName() + ". Lỗi: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                            e.printStackTrace();
                         }
                     } else {
+                        Log.w("AppAdapter", "Launch Intent is NULL for: " + clickedApp.getAppName());
                         Toast.makeText(v.getContext(), "Không thể tìm thấy ứng dụng để mở: " + clickedApp.getAppName(), Toast.LENGTH_SHORT).show();
                     }
                 }
+            } else {
+                Log.w("AppAdapter", "clickedApp is NULL at position: " + holder.getAdapterPosition());
             }
         });
     }

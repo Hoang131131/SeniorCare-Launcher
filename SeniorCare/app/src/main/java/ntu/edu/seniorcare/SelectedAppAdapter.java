@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
+import android.util.Log; // Thêm import này
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,7 +22,7 @@ public class SelectedAppAdapter extends RecyclerView.Adapter<SelectedAppAdapter.
 
     private final Context context;
     private final List<AppInfo> appList;
-    private final OnAppRemovedListener listener; // Giữ lại listener như bạn đã khai báo
+    private final OnAppRemovedListener listener;
 
     public interface OnAppRemovedListener {
         void onAppRemoved(AppInfo app);
@@ -30,7 +31,7 @@ public class SelectedAppAdapter extends RecyclerView.Adapter<SelectedAppAdapter.
     public SelectedAppAdapter(Context context, List<AppInfo> appList, OnAppRemovedListener listener) {
         this.context = context;
         this.appList = appList;
-        this.listener = listener; // Khởi tạo listener
+        this.listener = listener;
     }
 
     @NonNull
@@ -45,9 +46,8 @@ public class SelectedAppAdapter extends RecyclerView.Adapter<SelectedAppAdapter.
         AppInfo app = appList.get(position);
         holder.appName.setText(app.getAppName());
 
-        Drawable appIconDrawable = app.getAppIcon(); // Lấy icon từ AppInfo đã được tải (có thể là null)
-        if (appIconDrawable == null) { // Nếu icon là null (chưa được tải hoặc transient)
-            // Kiểm tra xem đây có phải là ứng dụng nội bộ của chúng ta không
+        Drawable appIconDrawable = app.getAppIcon();
+        if (appIconDrawable == null) {
             if (app.getPackageName().equals(context.getPackageName())) {
                 if (app.getClassName() != null) {
                     if (app.getClassName().equals(SmsActivity.class.getName())) {
@@ -67,24 +67,19 @@ public class SelectedAppAdapter extends RecyclerView.Adapter<SelectedAppAdapter.
                     }
                 }
             }
-            // Nếu vẫn chưa có icon (hoặc là ứng dụng bên ngoài), thử tải từ PackageManager
             if (appIconDrawable == null) {
                 try {
                     PackageManager pm = context.getPackageManager();
                     appIconDrawable = pm.getApplicationIcon(app.getPackageName());
                 } catch (PackageManager.NameNotFoundException e) {
-                    // Fallback nếu không tìm thấy icon hoặc ứng dụng
                     appIconDrawable = context.getResources().getDrawable(android.R.drawable.sym_def_app_icon, null);
                 }
             }
-            // Cập nhật lại icon vào đối tượng AppInfo để không cần tải lại nữa trong các lần onBindViewHolder tiếp theo
             if (appIconDrawable != null) {
                 app.setAppIcon(appIconDrawable);
             }
         }
-        // Gán icon đã có hoặc đã tải vào ImageView
         holder.appIcon.setImageDrawable(appIconDrawable);
-
 
         holder.itemView.setOnLongClickListener(v -> {
             new AlertDialog.Builder(context)
@@ -100,18 +95,40 @@ public class SelectedAppAdapter extends RecyclerView.Adapter<SelectedAppAdapter.
             return true;
         });
 
-        // Giữ nguyên onClickListener như phiên bản của bạn, nhưng cần lưu ý:
-        // Intent này sử dụng getLaunchIntentForPackage(), cái này có thể KHÔNG hoạt động
-        // cho các Activity nội bộ như SmsActivity và ContactsActivity (vì chúng không
-        // có LAUNCHER category). Nếu bạn muốn mở từ đây, bạn cần sửa Intent này.
-        // Tuy nhiên, ưu tiên hiện tại là fix lỗi icon.
         holder.itemView.setOnClickListener(v -> {
-            Intent intent = context.getPackageManager().getLaunchIntentForPackage(app.getPackageName());
-            if (intent != null) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                context.startActivity(intent);
+            Log.d("SelectedAppAdapter", "Item clicked: " + app.getAppName()); // Thêm log
+            Intent launchIntent = null;
+
+            if (app.getPackageName().equals(context.getPackageName()) && app.getClassName() != null) {
+                launchIntent = new Intent();
+                launchIntent.setClassName(app.getPackageName(), app.getClassName());
+                launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                launchIntent.addCategory(Intent.CATEGORY_DEFAULT); // Thêm dòng này
             } else {
-                Toast.makeText(context, "Không thể mở ứng dụng: " + app.getAppName(), Toast.LENGTH_SHORT).show();
+                launchIntent = context.getPackageManager().getLaunchIntentForPackage(app.getPackageName());
+                if (launchIntent == null && app.getClassName() != null) {
+                    launchIntent = new Intent(Intent.ACTION_MAIN);
+                    launchIntent.setClassName(app.getPackageName(), app.getClassName());
+                    launchIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+                    launchIntent.addCategory(Intent.CATEGORY_DEFAULT); // Thêm dòng này
+                    launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                }
+            }
+
+            if (launchIntent != null) {
+                Log.d("SelectedAppAdapter", "Launch Intent created. Component: " + launchIntent.getComponent() + " | Flags: " + launchIntent.getFlags() + " | Categories: " + launchIntent.getCategories()); // Cập nhật log
+                // launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED); // Bỏ dòng này
+
+                try {
+                    context.startActivity(launchIntent);
+                    Log.d("SelectedAppAdapter", "startActivity called for: " + app.getAppName()); // Thêm log
+                } catch (Exception e) {
+                    Log.e("SelectedAppAdapter", "Failed to start activity for " + app.getAppName(), e); // Thêm log
+                    Toast.makeText(context, "Không thể mở ứng dụng: " + app.getAppName() + ". Lỗi: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                }
+            } else {
+                Log.w("SelectedAppAdapter", "Launch Intent is NULL for: " + app.getAppName()); // Thêm log
+                Toast.makeText(context, "Không thể tìm thấy ứng dụng để mở: " + app.getAppName(), Toast.LENGTH_SHORT).show();
             }
         });
     }
