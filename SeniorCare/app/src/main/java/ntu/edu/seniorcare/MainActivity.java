@@ -1,5 +1,11 @@
 package ntu.edu.seniorcare;
 
+
+import static ntu.edu.seniorcare.SettingsUtils.MAX_ICON_3_COLUMNS;
+import static ntu.edu.seniorcare.SettingsUtils.MAX_ICON_4_COLUMNS;
+import static ntu.edu.seniorcare.SettingsUtils.MAX_TEXT_3_COLUMNS;
+import static ntu.edu.seniorcare.SettingsUtils.MAX_TEXT_4_COLUMNS;
+
 import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -30,6 +36,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects; // Import Objects để dùng Objects.equals
 
 public class MainActivity extends AppCompatActivity {
 
@@ -58,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             if (SettingsActivity.ACTION_UPDATE_LAUNCHER.equals(intent.getAction())) {
                 applySettings();
-                loadAndDisplayApps();
+                loadAndDisplayApps(); // Cần load lại app để cập nhật danh sách đã chọn và áp dụng icon mới
             }
         }
     };
@@ -113,15 +120,37 @@ public class MainActivity extends AppCompatActivity {
         PackageManager pm = getPackageManager();
 
         // -----------------------------------------------------------------
-        // Thêm SettingsActivity vào danh sách ứng dụng cố định
-        // Đảm bảo bạn có file ic_settings.xml hoặc ic_settings.png trong thư mục drawable
+        // Thêm SettingsActivity, SmsActivity, ContactsActivity vào danh sách ứng dụng cố định
+        // Đây là cách bạn đảm bảo chúng luôn hiển thị và không bị xóa khỏi danh sách selectedApps
+        // và cũng giúp tránh phải chọn lại từ danh sách ứng dụng đã cài đặt.
+
+        // SettingsActivity
         AppInfo settingsApp = new AppInfo(
-                "Cài đặt", // appName
-                getResources().getDrawable(R.drawable.ic_settings, null), // appIcon
-                getPackageName(), // packageName
-                SettingsActivity.class.getName() // className
+                "Cài đặt",
+                getResources().getDrawable(R.drawable.ic_settings, null),
+                getPackageName(),
+                SettingsActivity.class.getName()
         );
-        appList.add(settingsApp); // Thêm vào đầu danh sách để luôn hiển thị
+        appList.add(settingsApp);
+
+        // SmsActivity
+        AppInfo smsApp = new AppInfo(
+                "Tin nhắn",
+                getResources().getDrawable(R.drawable.ic_message, null),
+                getPackageName(),
+                SmsActivity.class.getName()
+        );
+        appList.add(smsApp);
+
+        // ContactsActivity
+        AppInfo contactsApp = new AppInfo(
+                "Danh bạ",
+                getResources().getDrawable(R.drawable.ic_contacts, null),
+                getPackageName(),
+                ContactsActivity.class.getName()
+        );
+        appList.add(contactsApp);
+
         // -----------------------------------------------------------------
 
         String selectedAppsJson = SettingsUtils.getSelectedAppsJson(this);
@@ -131,41 +160,31 @@ public class MainActivity extends AppCompatActivity {
             Type type = new TypeToken<ArrayList<AppInfo>>() {}.getType();
             List<AppInfo> savedApps = gson.fromJson(selectedAppsJson, type);
 
-            for (AppInfo savedApp : savedApps) {
-                // Kiểm tra nếu ứng dụng hiện tại là SettingsActivity, bỏ qua vì đã thêm thủ công
-                if (getPackageName().equals(savedApp.getPackageName()) && SettingsActivity.class.getName().equals(savedApp.getClassName())) {
-                    continue;
-                }
+            if (savedApps != null) {
+                for (AppInfo savedApp : savedApps) {
+                    // Kiểm tra nếu ứng dụng đã tồn tại (là các ứng dụng cố định của chúng ta) thì bỏ qua
+                    // Sử dụng Objects.equals cho className để tránh NullPointerException
+                    if (getPackageName().equals(savedApp.getPackageName()) &&
+                            (Objects.equals(savedApp.getClassName(), SettingsActivity.class.getName()) ||
+                                    Objects.equals(savedApp.getClassName(), SmsActivity.class.getName()) ||
+                                    Objects.equals(savedApp.getClassName(), ContactsActivity.class.getName()))) {
+                        continue;
+                    }
 
-                // Tải icon cho từng savedApp
-                Drawable appIcon = null;
-                try {
-                    // Kiểm tra xem đây có phải là ứng dụng nội bộ của chúng ta không
-                    if (savedApp.getPackageName().equals(getPackageName())) {
-                        if (savedApp.getClassName() != null) { // Đảm bảo className không null
-                            if (savedApp.getClassName().equals(SmsActivity.class.getName())) {
-                                appIcon = getResources().getDrawable(R.drawable.ic_message, null);
-                            } else if (savedApp.getClassName().equals(ContactsActivity.class.getName())) {
-                                appIcon = getResources().getDrawable(R.drawable.ic_contacts, null);
-                            }
-                        }
-                    }
-                    // Nếu không phải ứng dụng nội bộ hoặc chưa có icon, thử tải từ PackageManager
-                    if (appIcon == null) {
+                    Drawable appIcon = null;
+                    try {
                         appIcon = pm.getApplicationIcon(savedApp.getPackageName());
+                        savedApp.setAppIcon(appIcon);
+                        appList.add(savedApp);
+                    } catch (PackageManager.NameNotFoundException e) {
+                        Log.e("MainActivity", "App icon not found for package: " + savedApp.getPackageName() + ". Using default.", e);
+                        savedApp.setAppIcon(getResources().getDrawable(android.R.drawable.sym_def_app_icon, null));
+                        appList.add(savedApp);
+                    } catch (Exception e) {
+                        Log.e("MainActivity", "Error loading app icon for package: " + savedApp.getPackageName() + ". Using default.", e);
+                        savedApp.setAppIcon(getResources().getDrawable(android.R.drawable.sym_def_app_icon, null));
+                        appList.add(savedApp);
                     }
-                    // Gán icon đã tải vào đối tượng savedApp
-                    savedApp.setAppIcon(appIcon);
-                    appList.add(savedApp); // Thêm đối tượng savedApp đã có icon vào appList
-                } catch (PackageManager.NameNotFoundException e) {
-                    Log.e("MainActivity", "App icon not found for package: " + savedApp.getPackageName() + ". Using default.", e);
-                    // Gán icon mặc định nếu không tìm thấy
-                    savedApp.setAppIcon(getResources().getDrawable(android.R.drawable.sym_def_app_icon, null));
-                    appList.add(savedApp);
-                } catch (Exception e) {
-                    Log.e("MainActivity", "Error loading app icon for package: " + savedApp.getPackageName() + ". Using default.", e);
-                    savedApp.setAppIcon(getResources().getDrawable(android.R.drawable.sym_def_app_icon, null));
-                    appList.add(savedApp);
                 }
             }
         }
@@ -181,6 +200,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void applySettings() {
+        // Factors are for the adapter to scale drawing
         float iconSizeFactor = (float) SettingsUtils.getIconSizePercentage(this) / 100f;
         float textSizeFactor = (float) SettingsUtils.getTextSizePercentage(this) / 100f;
 
@@ -194,24 +214,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void applyGridLayout() {
-        int numColumns = SettingsUtils.getNumColumns(this);
-
-        float iconSizeFactor = (float) SettingsUtils.getIconSizePercentage(this) / 100f;
-        float textSizeFactor = (float) SettingsUtils.getTextSizePercentage(this) / 100f;
-
-        if (numColumns == 4 && (iconSizeFactor > 0.8f || textSizeFactor > 0.8f)) {
-            numColumns = 3;
-            Toast.makeText(this, "Kích thước icon/chữ quá lớn cho 4 cột, tự động chuyển sang 3 cột.", Toast.LENGTH_SHORT).show();
-        }
+        int effectiveNumColumns = SettingsUtils.getNumColumns(this);
 
         if (appGridRecyclerView.getLayoutManager() instanceof GridLayoutManager) {
             GridLayoutManager layoutManager = (GridLayoutManager) appGridRecyclerView.getLayoutManager();
-            if (layoutManager.getSpanCount() != numColumns) {
-                layoutManager.setSpanCount(numColumns);
+            if (layoutManager.getSpanCount() != effectiveNumColumns) {
+                layoutManager.setSpanCount(effectiveNumColumns);
                 layoutManager.requestLayout();
             }
         } else {
-            appGridRecyclerView.setLayoutManager(new GridLayoutManager(this, numColumns));
+            appGridRecyclerView.setLayoutManager(new GridLayoutManager(this, effectiveNumColumns));
         }
     }
 
@@ -221,9 +233,14 @@ public class MainActivity extends AppCompatActivity {
         String currentTime = timeFormat.format(calendar.getTime());
         timeTextView.setText(currentTime);
 
-        SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE,\ndd/MM/yyyy", new Locale("vi", "VN"));
-        String currentDate = dateFormat.format(calendar.getTime());
-        dateTextView.setText(capitalizeFirstLetter(currentDate));
+        SimpleDateFormat dayOfWeekFormat = new SimpleDateFormat("EEEE", new Locale("vi", "VN"));
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", new Locale("vi", "VN"));
+
+        String dayOfWeek = dayOfWeekFormat.format(calendar.getTime());
+        String date = dateFormat.format(calendar.getTime());
+
+        String formattedDate = capitalizeFirstLetter(dayOfWeek) + "\n" + date;
+        dateTextView.setText(formattedDate);
     }
 
     private String capitalizeFirstLetter(String str) {

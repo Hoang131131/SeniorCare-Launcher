@@ -48,14 +48,16 @@
                     <SeekBar
                         android:id="@+id/icon_size_seek_bar"
                         android:layout_width="0dp"
-                        android:layout_height="48dp"
+                        android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:max="150"
-                        android:min="50"
+                        android:max="200"
+                        android:min="0"
+                        android:progress="50"
                         android:paddingVertical="8dp"
-                        android:progress="100"
-                        android:progressTint="@color/material_dynamic_primary40"
-                        android:thumbTint="@color/material_dynamic_primary0" />
+                        android:thumb="@drawable/seekbar_thumb"
+                        android:progressDrawable="@drawable/custom_seekbar"
+                        android:splitTrack="false"
+                    />
 
                     <TextView
                         android:id="@+id/icon_size_value_text_view"
@@ -107,14 +109,16 @@
                     <SeekBar
                         android:id="@+id/text_size_seek_bar"
                         android:layout_width="0dp"
-                        android:layout_height="48dp"
+                        android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:max="150"
-                        android:min="50"
+                        android:max="200"
+                        android:min="0"
+                        android:progress="50"
                         android:paddingVertical="8dp"
-                        android:progress="100"
-                        android:progressTint="@color/material_dynamic_primary40"
-                        android:thumbTint="@color/material_dynamic_primary0" />
+                        android:thumb="@drawable/seekbar_thumb"
+                        android:progressDrawable="@drawable/custom_seekbar"
+                        android:splitTrack="false"
+                        />
 
                     <TextView
                         android:id="@+id/text_size_value_text_view"

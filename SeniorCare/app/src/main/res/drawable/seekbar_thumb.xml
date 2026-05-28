@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval"> <!-- Hoặc "rectangle" nếu bạn muốn hình vuông/chữ nhật -->
+    <size android:width="20dp" android:height="20dp" /> <!-- Kích thước của thumb -->
+    <solid android:color="@color/material_dynamic_primary0" /> <!-- Màu của thumb -->
+    <stroke android:width="2dp" android:color="#FFFFFF" /> <!-- Viền trắng cho thumb -->
+</shape>
