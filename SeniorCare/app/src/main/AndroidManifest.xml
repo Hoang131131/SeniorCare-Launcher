@@ -42,27 +42,20 @@
         </activity>
 
         <activity
-            android:name=".SettingsActivity"
-            android:exported="true"
-            android:label="Cài đặt"
-            android:screenOrientation="portrait"
-            android:parentActivityName=".MainActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="ntu.edu.seniorcare.MainActivity" />
+        android:name=".SettingsActivity"
+        android:exported="true"
+        android:label="Cài đặt">
         </activity>
 
         <activity
             android:name=".SmsActivity"
             android:exported="true"
-            android:label="Tin nhắn"
-            android:screenOrientation="portrait">
+            android:label="Tin nhắn">
         </activity>
         <activity
             android:name=".ContactsActivity"
             android:exported="true"
-            android:label="Danh bạ"
-            android:screenOrientation="portrait">
+            android:label="Danh bạ">
         </activity>
 
     </application>

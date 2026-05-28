@@ -221,7 +221,7 @@ public class MainActivity extends AppCompatActivity {
         String currentTime = timeFormat.format(calendar.getTime());
         timeTextView.setText(currentTime);
 
-        SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, dd/MM/yyyy", new Locale("vi", "VN"));
+        SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE,\ndd/MM/yyyy", new Locale("vi", "VN"));
         String currentDate = dateFormat.format(calendar.getTime());
         dateTextView.setText(capitalizeFirstLetter(currentDate));
     }
