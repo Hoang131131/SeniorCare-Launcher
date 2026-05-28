@@ -1,13 +1,16 @@
 package ntu.edu.seniorcare;
 
 import android.content.ActivityNotFoundException;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -47,28 +50,22 @@ public class SettingsActivity extends AppCompatActivity {
     private Button manageAppsButton;
     private ImageButton contactsButton;
     private ImageButton fontSettingsButton;
-    private ImageButton homeSettingsButton;
+    private ImageButton homeSettingsButton; // Đổi tên từ set_default_launcher_button
 
     private RecyclerView selectedAppsRecyclerView;
     private SelectedAppAdapter selectedAppAdapter;
     private List<AppInfo> selectedAppsList;
 
-    // Define the step size and ranges for manual snapping based on your XML (min="0", max="200")
-    private static final int SEEKBAR_STEP = 10; // For snapping to 10% increments
-    private static final int SEEKBAR_XML_MIN = 0; // The min value in your XML
-    private static final int SEEKBAR_XML_MAX = 200; // The max value in your XML
+    private static final int SEEKBAR_STEP = 10;
+    private static final int SEEKBAR_XML_MIN = 0;
+    private static final int SEEKBAR_XML_MAX = 200;
 
-    // The actual percentage range we want to display (100% to 300%)
-    // These values are taken from your SettingsUtils.java file (MIN_ICON_SIZE_PERCENTAGE and MAX_ICON_SIZE_PERCENTAGE)
-    // Make sure these match the desired range for both icon and text sizes.
     private static final int ACTUAL_PERCENTAGE_MIN = 100;
-    private static final int ACTUAL_PERCENTAGE_MAX_ICON = 240; // Max for icon size
-    private static final int ACTUAL_PERCENTAGE_MAX_TEXT = 300; // Max for text size
+    private static final int ACTUAL_PERCENTAGE_MAX_ICON = 240;
+    private static final int ACTUAL_PERCENTAGE_MAX_TEXT = 300;
 
-    // These ranges will be used for mapping progress
     private static final int ACTUAL_PERCENTAGE_RANGE_ICON = ACTUAL_PERCENTAGE_MAX_ICON - ACTUAL_PERCENTAGE_MIN;
     private static final int ACTUAL_PERCENTAGE_RANGE_TEXT = ACTUAL_PERCENTAGE_MAX_TEXT - ACTUAL_PERCENTAGE_MIN;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,7 +82,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         contactsButton = findViewById(R.id.contacts_button);
         fontSettingsButton = findViewById(R.id.font_settings_button);
-        homeSettingsButton = findViewById(R.id.set_default_launcher_button);
+        homeSettingsButton = findViewById(R.id.set_default_launcher_button); // Id vẫn là set_default_launcher_button
 
         selectedAppsRecyclerView = findViewById(R.id.selected_apps_recycler_view);
         selectedAppsRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
@@ -99,12 +96,37 @@ public class SettingsActivity extends AppCompatActivity {
         });
         selectedAppsRecyclerView.setAdapter(selectedAppAdapter);
 
-        // KHÔNG CẦN DÒNG NÀY NỮA, vì min và max đã được đặt trong XML (0-200)
-        // iconSizeSeekBar.setMax(SettingsUtils.MAX_ICON_SIZE_PERCENTAGE - SettingsUtils.MIN_ICON_SIZE_PERCENTAGE);
-        // textSizeSeekBar.setMax(SettingsUtils.MAX_TEXT_SIZE_PERCENTAGE - SettingsUtils.MIN_TEXT_SIZE_PERCENTAGE);
+        loadSettings();
+        loadSelectedApps();
 
-        loadSettings(); // Gọi sau khi init seekbars
-        loadSelectedApps(); // Cẩn thận: Dòng này vẫn còn nguyên từ code của bạn
+        // --- Cập nhật icon cho các ImageButton ---
+        // Icon Danh bạ
+        Drawable contactsIcon = getAppIconFromIntent(new Intent(Intent.ACTION_VIEW, ContactsContract.Contacts.CONTENT_URI));
+        if (contactsIcon != null) {
+            contactsButton.setImageDrawable(contactsIcon);
+        } else {
+            // Fallback nếu không tìm thấy icon danh bạ
+            contactsButton.setImageResource(R.drawable.ic_contacts); // Icon nội bộ nếu cần
+        }
+
+        // Icon Cài đặt Font/Hiển thị
+        Drawable fontSettingsIcon = getAppIconFromIntent(new Intent(Settings.ACTION_DISPLAY_SETTINGS));
+        if (fontSettingsIcon != null) {
+            fontSettingsButton.setImageDrawable(fontSettingsIcon);
+        } else {
+            // Fallback nếu không tìm thấy icon cài đặt font/hiển thị
+            fontSettingsButton.setImageResource(R.drawable.ic_font_settings); // Tạo icon nội bộ nếu không có
+        }
+
+        // Icon Cài đặt Home Launcher
+        Drawable homeSettingsIcon = getAppIconFromIntent(new Intent(Settings.ACTION_HOME_SETTINGS));
+        if (homeSettingsIcon != null) {
+            homeSettingsButton.setImageDrawable(homeSettingsIcon);
+        } else {
+            // Fallback nếu không tìm thấy icon cài đặt home launcher
+            homeSettingsButton.setImageResource(R.drawable.ic_settings); // Icon nội bộ nếu cần
+        }
+
 
         // --- Start: Icon Size SeekBar Listener ---
         iconSizeSeekBar.setOnSeekBarChangeListener(new SimpleSeekBarChangeListener() {
@@ -129,7 +151,7 @@ public class SettingsActivity extends AppCompatActivity {
                 seekBar.setProgress(finalXmlProgress);
 
                 SettingsUtils.saveIconSizePercentage(SettingsActivity.this, finalIconSize);
-                applyColumnLogic(finalIconSize, SettingsUtils.getTextSizePercentage(SettingsActivity.this)); // Apply logic here
+                applyColumnLogic(finalIconSize, SettingsUtils.getTextSizePercentage(SettingsActivity.this));
                 sendUpdateBroadcast();
             }
         });
@@ -159,13 +181,13 @@ public class SettingsActivity extends AppCompatActivity {
                 seekBar.setProgress(finalXmlProgress);
 
                 SettingsUtils.saveTextSizePercentage(SettingsActivity.this, finalTextSize);
-                applyColumnLogic(SettingsUtils.getIconSizePercentage(SettingsActivity.this), finalTextSize); // Apply logic here
+                applyColumnLogic(SettingsUtils.getIconSizePercentage(SettingsActivity.this), finalTextSize);
                 sendUpdateBroadcast();
             }
         });
         // --- End: Text Size SeekBar Listener ---
 
-        // --- Start: Column RadioGroup Listener (unchanged from your code) ---
+        // --- Start: Column RadioGroup Listener ---
         numColumnsRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
             int numColumns = 0;
             if (checkedId == R.id.radio_2_columns) {
@@ -180,31 +202,46 @@ public class SettingsActivity extends AppCompatActivity {
         });
         // --- End: Column RadioGroup Listener ---
 
-        // --- Start: Button Listeners (unchanged from your code) ---
+        // --- Start: Button Listeners (Đã sửa) ---
         manageAppsButton.setOnClickListener(v -> showAppSelectionDialog());
 
+        // Nút Danh bạ
         contactsButton.setOnClickListener(v -> {
-            Intent intent = new Intent(this, ContactsActivity.class);
+            Intent intent = new Intent(Intent.ACTION_VIEW, ContactsContract.Contacts.CONTENT_URI);
             try {
                 startActivity(intent);
             } catch (ActivityNotFoundException e) {
-                Toast.makeText(this, "Không thể mở ứng dụng danh bạ nội bộ.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Không tìm thấy ứng dụng Danh bạ mặc định.", Toast.LENGTH_SHORT).show();
             }
         });
 
+        // Nút Cài đặt Font/Hiển thị
         fontSettingsButton.setOnClickListener(v -> {
-            Toast.makeText(this, "Điều chỉnh kích thước chữ ngay trên màn hình này.", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(Settings.ACTION_DISPLAY_SETTINGS);
+            try {
+                startActivity(intent);
+            } catch (ActivityNotFoundException e) {
+                // Fallback cho một số thiết bị không có ACTION_DISPLAY_SETTINGS
+                Toast.makeText(this, "Không thể mở cài đặt hiển thị trực tiếp. Mở cài đặt chung.", Toast.LENGTH_SHORT).show();
+                Intent generalSettingsIntent = new Intent(Settings.ACTION_SETTINGS);
+                try {
+                    startActivity(generalSettingsIntent);
+                } catch (ActivityNotFoundException ex) {
+                    Toast.makeText(this, "Không thể mở cài đặt.", Toast.LENGTH_LONG).show();
+                }
+            }
         });
 
+        // Nút Cài đặt Launcher mặc định
         homeSettingsButton.setOnClickListener(v -> {
             Intent intent = new Intent(Settings.ACTION_HOME_SETTINGS);
             try {
                 startActivity(intent);
             } catch (ActivityNotFoundException e) {
                 Toast.makeText(this, "Không thể mở cài đặt Launcher mặc định. Vui lòng tìm 'Ứng dụng mặc định' trong cài đặt điện thoại của bạn.", Toast.LENGTH_LONG).show();
-                Intent generalSettingsIntent = new Intent(Settings.ACTION_APPLICATION_SETTINGS);
+                Intent generalAppSettingsIntent = new Intent(Settings.ACTION_APPLICATION_SETTINGS);
                 try {
-                    startActivity(generalSettingsIntent);
+                    startActivity(generalAppSettingsIntent);
                 } catch (ActivityNotFoundException ex) {
                     Toast.makeText(this, "Không thể mở cài đặt ứng dụng. Vui lòng tìm thủ công.", Toast.LENGTH_LONG).show();
                 }
@@ -213,55 +250,49 @@ public class SettingsActivity extends AppCompatActivity {
         // --- End: Button Listeners ---
     }
 
-    // --- Start: SeekBar utility functions (modified to be more generic) ---
-    // Maps XML progress (0-200) to actual percentage (e.g., 100-240 or 100-300)
+    // --- Start: NEW helper method to get app icon from an Intent ---
+    private Drawable getAppIconFromIntent(Intent intent) {
+        PackageManager pm = getPackageManager();
+        // Cần FLAG_MATCH_DEFAULT_ONLY để tìm ứng dụng mặc định cho intent này
+        List<ResolveInfo> list = pm.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+        if (!list.isEmpty()) {
+            // Lấy ứng dụng đầu tiên trong danh sách (thường là ứng dụng mặc định)
+            return list.get(0).loadIcon(pm);
+        }
+        return null;
+    }
+    // --- End: NEW helper method ---
+
     private int mapXmlProgressToActualPercentage(int xmlProgress, int actualRange, int actualMin) {
         float scale = (float) actualRange / (SEEKBAR_XML_MAX - SEEKBAR_XML_MIN);
         return (int) (actualMin + (xmlProgress - SEEKBAR_XML_MIN) * scale);
     }
 
-    // Maps actual percentage (e.g., 100-240 or 100-300) to XML progress (0-200)
     private int mapActualPercentageToXmlProgress(int actualPercentage, int actualRange, int actualMin) {
         float scale = (float) (SEEKBAR_XML_MAX - SEEKBAR_XML_MIN) / actualRange;
         return (int) (SEEKBAR_XML_MIN + (actualPercentage - actualMin) * scale);
     }
 
-    // Snaps an actual percentage value to the nearest 10% step,
-    // ensuring it's within the actual min/max bounds.
     private int snapActualPercentageToStep(int actualPercentage, int actualMin, int actualMax) {
         int snappedValue = Math.round((float) actualPercentage / SEEKBAR_STEP) * SEEKBAR_STEP;
         return Math.max(actualMin, Math.min(actualMax, snappedValue));
     }
-    // --- End: SeekBar utility functions ---
 
-    // --- Start: New method to apply the column logic ---
     private void applyColumnLogic(int iconSizePercentage, int textSizePercentage) {
-        int currentNumColumns = SettingsUtils.getNumColumns(this); // Số cột hiện tại mà người dùng đã chọn hoặc đã được tự động điều chỉnh
-        int targetNumColumns = currentNumColumns; // Khởi tạo số cột mục tiêu bằng số cột hiện tại
+        int currentNumColumns = SettingsUtils.getNumColumns(this);
+        int targetNumColumns = currentNumColumns;
 
-        // --- Bắt đầu logic điều chỉnh số cột tự động ---
-
-        // 1. Luôn kiểm tra điều kiện cho 4 cột trước
-        // Nếu đang là 4 cột VÀ kích thước icon/text vượt quá ngưỡng cho 4 cột,
-        // thì không thể duy trì 4 cột được. Ta sẽ cân nhắc giảm xuống 3.
         if (targetNumColumns == 4 && (iconSizePercentage > SettingsUtils.MAX_ICON_4_COLUMNS || textSizePercentage > SettingsUtils.MAX_TEXT_4_COLUMNS)) {
-            targetNumColumns = 3; // Giảm xuống 3 cột để kiểm tra tiếp
+            targetNumColumns = 3;
         }
 
-        // 2. Sau đó, kiểm tra điều kiện cho 3 cột
-        // Nếu hiện tại là 3 cột (hoặc đã bị giảm từ 4 xuống 3) VÀ kích thước icon/text vượt quá ngưỡng cho 3 cột,
-        // thì không thể duy trì 3 cột được. Ta sẽ cân nhắc giảm xuống 2.
         if (targetNumColumns == 3 && (iconSizePercentage > SettingsUtils.MAX_ICON_3_COLUMNS || textSizePercentage > SettingsUtils.MAX_TEXT_3_COLUMNS)) {
-            targetNumColumns = 2; // Giảm xuống 2 cột
+            targetNumColumns = 2;
         }
 
-        // --- Kết thúc logic điều chỉnh số cột tự động ---
-
-        // Chỉ lưu và cập nhật nếu số cột thực sự thay đổi
         if (targetNumColumns != currentNumColumns) {
             SettingsUtils.saveNumColumns(this, targetNumColumns);
 
-            // Cập nhật hiển thị RadioButton
             if (targetNumColumns == 2) {
                 numColumnsRadioGroup.check(R.id.radio_2_columns);
                 Toast.makeText(this, "Kích thước icon/chữ quá lớn, tự động điều chỉnh sang 2 cột.", Toast.LENGTH_SHORT).show();
@@ -269,29 +300,23 @@ public class SettingsActivity extends AppCompatActivity {
                 numColumnsRadioGroup.check(R.id.radio_3_columns);
                 Toast.makeText(this, "Kích thước icon/chữ lớn, tự động điều chỉnh sang 3 cột.", Toast.LENGTH_SHORT).show();
             } else if (targetNumColumns == 4) {
-                // Trường hợp này có thể xảy ra nếu chúng ta thêm logic tăng cột,
-                // nhưng hiện tại chỉ có logic giảm cột.
                 numColumnsRadioGroup.check(R.id.radio_4_columns);
                 Toast.makeText(this, "Số cột tự động điều chỉnh sang 4 cột.", Toast.LENGTH_SHORT).show();
             }
             sendUpdateBroadcast();
         }
-        // Nếu effectiveNumColumns == currentNumColumns, tức là không có gì thay đổi,
-        // thì không cần lưu lại hay gửi broadcast.
     }
 
-
-    // --- Start: loadSettings (modified to use new mapping functions) ---
     private void loadSettings() {
         int iconSize = SettingsUtils.getIconSizePercentage(this);
         int mappedIconSizeProgress = mapActualPercentageToXmlProgress(iconSize, ACTUAL_PERCENTAGE_RANGE_ICON, ACTUAL_PERCENTAGE_MIN);
         iconSizeSeekBar.setProgress(mappedIconSizeProgress);
-        iconSizeValueTextView.setText(String.format("%d%%", iconSize)); // Display the actual percentage
+        iconSizeValueTextView.setText(String.format("%d%%", iconSize));
 
         int textSize = SettingsUtils.getTextSizePercentage(this);
         int mappedTextSizeProgress = mapActualPercentageToXmlProgress(textSize, ACTUAL_PERCENTAGE_RANGE_TEXT, ACTUAL_PERCENTAGE_MIN);
         textSizeSeekBar.setProgress(mappedTextSizeProgress);
-        textSizeValueTextView.setText(String.format("%d%%", textSize)); // Display the actual percentage
+        textSizeValueTextView.setText(String.format("%d%%", textSize));
 
         int numColumns = SettingsUtils.getNumColumns(this);
         if (numColumns == 2) {
@@ -301,14 +326,11 @@ public class SettingsActivity extends AppCompatActivity {
         } else if (numColumns == 4) {
             numColumnsRadioGroup.check(R.id.radio_4_columns);
         } else {
-            numColumnsRadioGroup.check(R.id.radio_3_columns); // Default if saved value is invalid
+            numColumnsRadioGroup.check(R.id.radio_3_columns);
             SettingsUtils.saveNumColumns(this, SettingsUtils.DEFAULT_NUM_COLUMNS);
         }
     }
-    // --- End: loadSettings ---
 
-
-    // --- Start: App Management Functions (UNCHANGED from your provided code) ---
     private void loadSelectedApps() {
         String json = SettingsUtils.getSelectedAppsJson(this);
         List<AppInfo> tempLoadedApps = new ArrayList<>();
@@ -328,7 +350,7 @@ public class SettingsActivity extends AppCompatActivity {
                                 appIcon = getResources().getDrawable(R.drawable.ic_message, null);
                             } else if (savedApp.getClassName().equals(ContactsActivity.class.getName())) {
                                 appIcon = getResources().getDrawable(R.drawable.ic_contacts, null);
-                            } else if (savedApp.getClassName().equals(SettingsActivity.class.getName())) { // Also handle SettingsActivity
+                            } else if (savedApp.getClassName().equals(SettingsActivity.class.getName())) {
                                 appIcon = getResources().getDrawable(R.drawable.ic_settings, null);
                             }
                         }
@@ -389,11 +411,10 @@ public class SettingsActivity extends AppCompatActivity {
 
         builder.setPositiveButton("Thêm", (dialog, which) -> {
             List<AppInfo> newlySelected = installedAppAdapter.getSelectedApps();
-            // Clear and add new selection to avoid duplicates and ensure only selected apps remain
             selectedAppsList.clear();
             selectedAppsList.addAll(newlySelected);
             Collections.sort(selectedAppsList, (app1, app2) -> app1.getAppName().compareToIgnoreCase(app2.getAppName()));
-            saveSelectedApps(); // Save the updated list
+            saveSelectedApps();
             selectedAppAdapter.notifyDataSetChanged();
             Toast.makeText(this, "Đã cập nhật ứng dụng trên Launcher.", Toast.LENGTH_SHORT).show();
         });
@@ -406,8 +427,7 @@ public class SettingsActivity extends AppCompatActivity {
         PackageManager pm = getPackageManager();
 
         Set<String> excludedPackages = new HashSet<>();
-        excludedPackages.add(getPackageName()); // Exclude self
-        // Add more packages to exclude if necessary
+        excludedPackages.add(getPackageName());
         excludedPackages.add("com.android.stk");
         excludedPackages.add("com.samsung.android.app.simcardmanager");
         excludedPackages.add("com.qualcomm.qti.simcontacts");
@@ -439,7 +459,6 @@ public class SettingsActivity extends AppCompatActivity {
             String packageName = ri.activityInfo.packageName;
             String className = ri.activityInfo.name;
 
-            // Exclude our internal activities from the selectable list
             if (packageName.equals(getPackageName()) &&
                     (className.equals(SmsActivity.class.getName()) ||
                             className.equals(ContactsActivity.class.getName()) ||
@@ -454,10 +473,6 @@ public class SettingsActivity extends AppCompatActivity {
             }
         }
 
-        // THÊM CÁC ỨNG DỤNG NỘI BỘ MỘT CÁCH THỦ CÔNG VÀO DANH SÁCH CÓ THỂ CHỌN NẾU CHƯA CÓ
-        // (Đây là logic nếu bạn muốn chúng có thể được thêm/xóa khỏi list "selected apps"
-        //  nhưng do đã thêm cứng trong MainActivity, phần này có thể không cần thiết hoặc cần điều chỉnh.)
-        // Ví dụ: add SMS and Contacts if they aren't explicitly excluded by package name
         addInternalAppIfMissing(apps, "Tin nhắn", SmsActivity.class.getName(), R.drawable.ic_message);
         addInternalAppIfMissing(apps, "Danh bạ", ContactsActivity.class.getName(), R.drawable.ic_contacts);
         addInternalAppIfMissing(apps, "Cài đặt", SettingsActivity.class.getName(), R.drawable.ic_settings);
@@ -497,9 +512,24 @@ public class SettingsActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         loadSelectedApps();
-        // The seekbar progress and text will be updated by loadSettings() and change listeners.
-        // If you want to force an update here, you can call loadSettings() again.
         loadSettings();
     }
-    // --- End: App Management Functions ---
+
+    // --- SimpleSeekBarChangeListener (UNCHANGED) ---
+    private abstract class SimpleSeekBarChangeListener implements SeekBar.OnSeekBarChangeListener {
+        @Override
+        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+            // Implemented by subclasses
+        }
+
+        @Override
+        public void onStartTrackingTouch(SeekBar seekBar) {
+            // Not used
+        }
+
+        @Override
+        public void onStopTrackingTouch(SeekBar seekBar) {
+            // Implemented by subclasses
+        }
+    }
 }

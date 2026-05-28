@@ -276,13 +276,14 @@
                 android:orientation="vertical"
                 android:gravity="center_horizontal"
                 android:padding="8dp">
+
                 <ImageButton
                     android:id="@+id/contacts_button"
-                    android:layout_width="80dp"
-                    android:layout_height="80dp"
-                    android:src="@drawable/ic_contacts"
-                    android:scaleType="fitCenter"
-                    android:contentDescription="Mở Danh bạ"/>
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:background="@android:color/transparent"
+                    android:contentDescription="Mở Danh bạ"
+                    android:scaleType="fitCenter" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -301,10 +302,11 @@
                 android:padding="8dp">
                 <ImageButton
                     android:id="@+id/font_settings_button"
-                    android:layout_width="80dp"
-                    android:layout_height="80dp"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
                     android:src="@drawable/ic_font_settings"
                     android:scaleType="fitCenter"
+                    android:background="@android:color/transparent"
                     android:contentDescription="Cài đặt Font chữ"/>
                 <TextView
                     android:layout_width="wrap_content"
@@ -324,10 +326,11 @@
                 android:padding="8dp">
                 <ImageButton
                     android:id="@+id/set_default_launcher_button"
-                    android:layout_width="80dp"
-                    android:layout_height="80dp"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
                     android:src="@drawable/ic_home_settings"
                     android:scaleType="fitCenter"
+                    android:background="@android:color/transparent"
                     android:contentDescription="Đặt làm Launcher mặc định"/>
                 <TextView
                     android:layout_width="wrap_content"

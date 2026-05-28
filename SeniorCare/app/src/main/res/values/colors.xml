@@ -8,5 +8,12 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="red">#FFFF0000</color>
-    <color name="zalo_blue">#0084FF</color>
+    <color name="zalo_blue">#0384FC</color>
+
+    <color name="material_dynamic_primary40">#388E3C</color>
+    <color name="material_dynamic_primary50">#4CAF50</color>
+    <color name="your_primary_color">#4CAF50</color>
+    <color name="your_primary_dark_color">#388E3C</color>
+    <color name="your_secondary_color">#FFC107</color>
+    <color name="your_secondary_dark_color">#FFA000</color>
 </resources>

@@ -15,5 +15,9 @@
         <!-- Customize your theme here. -->
     </style>
 
+    <style name="ShapeAppearanceOverlay.App.CornerSize50Percent" parent="">
+        <item name="cornerSize">50%</item>
+    </style>
+
     <style name="Theme.SeniorCare" parent="Base.Theme.SeniorCare" />
 </resources>
