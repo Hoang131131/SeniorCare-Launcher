@@ -13,185 +13,279 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Cài đặt Launcher"
-            android:textSize="28sp"
-            android:textColor="@android:color/black"
-            android:textStyle="bold"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="24dp" />
-
         <!-- Cài đặt kích thước Icon -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Kích thước biểu tượng ứng dụng"
-            android:textColor="@android:color/black"
-            android:textSize="18sp" />
-
-        <LinearLayout
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="16dp">
+            android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="#F5F5F5"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="2dp"
+            app:contentPadding="16dp"
+            app:strokeColor="@android:color/darker_gray"
+            app:strokeWidth="1dp">
 
-            <SeekBar
-                android:id="@+id/icon_size_seek_bar"
-                android:layout_width="0dp"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:min="50"
-                android:max="150"
-                android:progress="100" />
+                android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/icon_size_value_text_view"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="100%"
-                android:textColor="@android:color/black"
-                android:textSize="16sp" />
-        </LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="Kích thước biểu tượng ứng dụng"
+                    android:textColor="@android:color/black"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <SeekBar
+                        android:id="@+id/icon_size_seek_bar"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:max="150"
+                        android:min="50"
+                        android:paddingVertical="8dp"
+                        android:progress="100"
+                        android:progressTint="@color/material_dynamic_primary40"
+                        android:thumbTint="@color/material_dynamic_primary0" />
+
+                    <TextView
+                        android:id="@+id/icon_size_value_text_view"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:gravity="end"
+                        android:minWidth="60dp"
+                        android:text="100%"
+                        android:textColor="@android:color/black"
+                        android:textSize="20sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
 
         <!-- Cài đặt kích thước Text -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Kích thước chữ"
-            android:textColor="@android:color/black"
-            android:textSize="18sp" />
-
-        <LinearLayout
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="16dp">
+            android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="#F5F5F5"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="2dp"
+            app:contentPadding="16dp"
+            app:strokeColor="@android:color/darker_gray"
+            app:strokeWidth="1dp">
 
-            <SeekBar
-                android:id="@+id/text_size_seek_bar"
-                android:layout_width="0dp"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:min="50"
-                android:max="150"
-                android:progress="100" />
+                android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/text_size_value_text_view"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="100%"
-                android:textColor="@android:color/black"
-                android:textSize="16sp" />
-        </LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="Kích thước chữ"
+                    android:textColor="@android:color/black"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <SeekBar
+                        android:id="@+id/text_size_seek_bar"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:max="150"
+                        android:min="50"
+                        android:paddingVertical="8dp"
+                        android:progress="100"
+                        android:progressTint="@color/material_dynamic_primary40"
+                        android:thumbTint="@color/material_dynamic_primary0" />
+
+                    <TextView
+                        android:id="@+id/text_size_value_text_view"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:gravity="end"
+                        android:minWidth="60dp"
+                        android:text="100%"
+                        android:textColor="@android:color/black"
+                        android:textSize="20sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
 
         <!-- Cài đặt số cột -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Số cột ứng dụng"
-            android:textColor="@android:color/black"
-            android:textSize="18sp" />
-
-        <RadioGroup
-            android:id="@+id/num_columns_radio_group"
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_horizontal"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="24dp">
+            android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="#F5F5F5"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="2dp"
+            app:contentPadding="16dp"
+            app:strokeColor="@android:color/darker_gray"
+            app:strokeWidth="1dp">
 
-            <RadioButton
-                android:id="@+id/radio_2_columns"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="2 Cột"
-                android:layout_marginEnd="16dp"
-                android:textColor="@android:color/black"/>
+                android:orientation="vertical">
 
-            <RadioButton
-                android:id="@+id/radio_3_columns"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="3 Cột"
-                android:layout_marginEnd="16dp"
-                android:textColor="@android:color/black"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="Số cột ứng dụng"
+                    android:textColor="@android:color/black"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
 
-            <RadioButton
-                android:id="@+id/radio_4_columns"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="4 Cột"
-                android:textColor="@android:color/black"/>
-        </RadioGroup>
+                <RadioGroup
+                    android:id="@+id/num_columns_radio_group"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center_horizontal"
+                    android:orientation="horizontal">
+
+                    <RadioButton
+                        android:id="@+id/radio_2_columns"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="24dp"
+                        android:padding="8dp"
+                        android:text="2 Cột"
+                        android:textColor="@android:color/black"
+                        android:textSize="18sp" />
+
+                    <RadioButton
+                        android:id="@+id/radio_3_columns"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="24dp"
+                        android:padding="8dp"
+                        android:text="3 Cột"
+                        android:textColor="@android:color/black"
+                        android:textSize="18sp" />
+
+                    <RadioButton
+                        android:id="@+id/radio_4_columns"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:padding="8dp"
+                        android:text="4 Cột"
+                        android:textColor="@android:color/black"
+                        android:textSize="18sp" />
+                </RadioGroup>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
 
         <!-- Nút Quản lý ứng dụng -->
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/manage_apps_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:paddingVertical="18dp"
             android:text="Quản lý ứng dụng trên Launcher"
+            android:textColor="@color/black"
             android:textSize="18sp"
-            android:textColor="@android:color/white"
-            android:backgroundTint="?attr/colorPrimaryVariant"
-            android:paddingVertical="12dp"
-            android:layout_marginBottom="24dp" />
+            app:backgroundTint="#DFF1F1"
+            app:cornerRadius="8dp"/> <!-- Sử dụng màu chủ đạo của Material Design -->
+
 
         <!-- Danh sách ứng dụng đã chọn -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Ứng dụng đã chọn"
-            android:textColor="@android:color/black"
-            android:textSize="18sp" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/selected_apps_recycler_view"
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
-            android:layout_height="77dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="24dp"
-            android:nestedScrollingEnabled="false" />
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="#F5F5F5"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="2dp"
+            app:contentPadding="16dp"
+            app:strokeColor="@android:color/darker_gray"
+            app:strokeWidth="1dp">
 
-        <!-- Các nút bổ sung (ImageButton) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="Ứng dụng đã chọn"
+                    android:textColor="@android:color/black"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/selected_apps_recycler_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:minHeight="100dp"
+                    android:nestedScrollingEnabled="false"
+                    tools:itemCount="3"
+                    tools:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    tools:orientation="horizontal"
+                    tools:spanCount="3" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+
+        <!-- Các nút bổ sung (ImageButton) - Sắp xếp lại -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center"
-            android:layout_marginTop="16dp">
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            android:baselineAligned="false"> <!-- Thêm baselineAligned để loại bỏ cảnh báo -->
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical"
-                android:gravity="center_horizontal">
+                android:gravity="center_horizontal"
+                android:padding="8dp">
                 <ImageButton
                     android:id="@+id/contacts_button"
-                    android:layout_width="72dp"
-                    android:layout_height="72dp"
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
                     android:src="@drawable/ic_contacts"
-                    android:background="@drawable/rounded_button_background"
                     android:scaleType="fitCenter"
-                    android:contentDescription="Mở Danh bạ" />
+                    android:contentDescription="Mở Danh bạ"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Danh bạ"
                     android:textColor="@android:color/black"
-                    android:textSize="14sp"
-                    android:layout_marginTop="4dp" />
+                    android:textSize="16sp"
+                    android:layout_marginTop="8dp" />
             </LinearLayout>
 
             <LinearLayout
@@ -199,22 +293,22 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical"
-                android:gravity="center_horizontal">
+                android:gravity="center_horizontal"
+                android:padding="8dp">
                 <ImageButton
                     android:id="@+id/font_settings_button"
-                    android:layout_width="72dp"
-                    android:layout_height="72dp"
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
                     android:src="@drawable/ic_font_settings"
-                    android:background="@drawable/rounded_button_background"
                     android:scaleType="fitCenter"
-                    android:contentDescription="Cài đặt Font chữ" />
+                    android:contentDescription="Cài đặt Font chữ"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Cỡ chữ"
                     android:textColor="@android:color/black"
-                    android:textSize="14sp"
-                    android:layout_marginTop="4dp" />
+                    android:textSize="16sp"
+                    android:layout_marginTop="8dp" />
             </LinearLayout>
 
             <LinearLayout
@@ -222,22 +316,22 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical"
-                android:gravity="center_horizontal">
+                android:gravity="center_horizontal"
+                android:padding="8dp">
                 <ImageButton
                     android:id="@+id/set_default_launcher_button"
-                    android:layout_width="72dp"
-                    android:layout_height="72dp"
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
                     android:src="@drawable/ic_home_settings"
-                    android:background="@drawable/rounded_button_background"
                     android:scaleType="fitCenter"
-                    android:contentDescription="Đặt làm Launcher mặc định" />
+                    android:contentDescription="Đặt làm Launcher mặc định"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Đặt mặc định"
                     android:textColor="@android:color/black"
-                    android:textSize="14sp"
-                    android:layout_marginTop="4dp" />
+                    android:textSize="16sp"
+                    android:layout_marginTop="8dp" />
             </LinearLayout>
         </LinearLayout>
 
