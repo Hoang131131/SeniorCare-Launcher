@@ -43,7 +43,8 @@
 
         <activity
             android:name=".SettingsActivity"
-            android:exported="false"
+            android:exported="true"
+            android:label="Cài đặt"
             android:screenOrientation="portrait"
             android:parentActivityName=".MainActivity">
             <meta-data

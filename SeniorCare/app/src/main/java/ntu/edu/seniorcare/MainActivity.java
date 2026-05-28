@@ -71,7 +71,6 @@ public class MainActivity extends AppCompatActivity {
         timeTextView = findViewById(R.id.time_text_view);
         dateTextView = findViewById(R.id.date_text_view);
         weatherTextView = findViewById(R.id.weather_text_view);
-        ImageButton settingsButton = findViewById(R.id.settings_button);
         ImageButton volumeUpButton = findViewById(R.id.volume_up_button);
         ImageButton volumeDownButton = findViewById(R.id.volume_down_button);
         appGridRecyclerView = findViewById(R.id.app_grid_recycler_view);
@@ -104,11 +103,6 @@ public class MainActivity extends AppCompatActivity {
         volumeUpButton.setOnClickListener(v -> adjustVolume(true));
         volumeDownButton.setOnClickListener(v -> adjustVolume(false));
 
-        settingsButton.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
-            startActivity(intent);
-        });
-
         appList = new ArrayList<>();
         loadAndDisplayApps();
         applySettings();
@@ -118,14 +112,31 @@ public class MainActivity extends AppCompatActivity {
         appList.clear();
         PackageManager pm = getPackageManager();
 
+        // -----------------------------------------------------------------
+        // Thêm SettingsActivity vào danh sách ứng dụng cố định
+        // Đảm bảo bạn có file ic_settings.xml hoặc ic_settings.png trong thư mục drawable
+        AppInfo settingsApp = new AppInfo(
+                "Cài đặt", // appName
+                getResources().getDrawable(R.drawable.ic_settings, null), // appIcon
+                getPackageName(), // packageName
+                SettingsActivity.class.getName() // className
+        );
+        appList.add(settingsApp); // Thêm vào đầu danh sách để luôn hiển thị
+        // -----------------------------------------------------------------
+
         String selectedAppsJson = SettingsUtils.getSelectedAppsJson(this);
 
         if (selectedAppsJson != null && !selectedAppsJson.isEmpty() && !selectedAppsJson.equals("[]")) {
             Gson gson = new Gson();
             Type type = new TypeToken<ArrayList<AppInfo>>() {}.getType();
-            List<AppInfo> savedApps = gson.fromJson(selectedAppsJson, type); // savedApps giờ là List<AppInfo> mà appIcon là null
+            List<AppInfo> savedApps = gson.fromJson(selectedAppsJson, type);
 
             for (AppInfo savedApp : savedApps) {
+                // Kiểm tra nếu ứng dụng hiện tại là SettingsActivity, bỏ qua vì đã thêm thủ công
+                if (getPackageName().equals(savedApp.getPackageName()) && SettingsActivity.class.getName().equals(savedApp.getClassName())) {
+                    continue;
+                }
+
                 // Tải icon cho từng savedApp
                 Drawable appIcon = null;
                 try {
@@ -167,9 +178,6 @@ public class MainActivity extends AppCompatActivity {
             appAdapter.setAppList(appList);
             appAdapter.notifyDataSetChanged();
         }
-
-        applyGridLayout();
-        appGridRecyclerView.setLongClickable(false);
     }
 
     private void applySettings() {
