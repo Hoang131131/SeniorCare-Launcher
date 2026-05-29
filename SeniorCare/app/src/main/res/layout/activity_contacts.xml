@@ -6,6 +6,18 @@
     android:layout_height="match_parent"
     tools:context=".contact.ContactsActivity">
 
+
+    <View
+        android:id="@+id/status_bar_overlay2"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#50000000"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_percent="0.025"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+
     <!-- Fragment Container để hiển thị các Fragment -->
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/nav_host_fragment"
@@ -14,11 +26,11 @@
         android:layout_height="0dp"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
+        app:defaultNavHost="true"
         app:layout_constraintBottom_toTopOf="@+id/bottom_navigation"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:defaultNavHost="true"
+        app:layout_constraintTop_toBottomOf="@+id/status_bar_overlay2"
         app:navGraph="@navigation/nav_graph_contacts" />
 
     <!-- Bottom Navigation Bar -->

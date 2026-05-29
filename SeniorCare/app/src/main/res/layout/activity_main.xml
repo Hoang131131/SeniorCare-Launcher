@@ -8,6 +8,17 @@
     android:background="@android:color/white"
     tools:context=".MainActivity">
 
+    <!-- Status Bar Overlay - Mờ mờ đen để làm nổi bật chữ trắng trên thanh trạng thái -->
+    <View
+        android:id="@+id/status_bar_overlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#50000000"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_percent="0.025" />
+
     <!-- Top Widget Area (1/4 screen height) -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/top_widget_area"
@@ -18,7 +29,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHeight_percent="0.25"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toBottomOf="@+id/status_bar_overlay">
 
         <!-- Time and Date (Left 35%) -->
         <LinearLayout
@@ -95,7 +106,7 @@
                     android:gravity="center"
                     android:text="Nắng"
                     android:textColor="@android:color/black"
-                    android:textSize="28sp"/>
+                    android:textSize="28sp" />
 
             </LinearLayout>
 
@@ -122,9 +133,9 @@
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:backgroundTint="#dcdcdc"
-                android:src="@drawable/ic_volume_up"
+                android:contentDescription="Volume Up"
                 android:scaleType="centerInside"
-                android:contentDescription="Volume Up" />
+                android:src="@drawable/ic_volume_up" />
 
             <ImageButton
                 android:id="@+id/volume_down_button"
@@ -132,9 +143,9 @@
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:backgroundTint="#dcdcdc"
-                android:src="@drawable/ic_volume_down"
+                android:contentDescription="Volume Down"
                 android:scaleType="centerInside"
-                android:contentDescription="Volume Down" />
+                android:src="@drawable/ic_volume_down" />
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
