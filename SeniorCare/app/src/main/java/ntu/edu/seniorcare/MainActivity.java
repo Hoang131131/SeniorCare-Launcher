@@ -2,15 +2,21 @@ package ntu.edu.seniorcare;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.content.ActivityNotFoundException; // Thêm import này
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings; // Thêm import này
 import android.util.Log;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -57,8 +63,12 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
-    private static final String OPENWEATHER_API_KEY = "555f6b582f3ad5b9bf601a9380617851";
+    private static final String OPENWEATHER_API_KEY = "555f6b582f3ad5b9bf601a9380617851"; // Đảm bảo đã thay thế bằng API key thật
     private static final String WEATHER_API_URL = "https://api.openweathermap.org/data/2.5/weather?";
+
+    // Constants cho SharedPreferences
+    private static final String PREFS_NAME = "MyLauncherPrefs";
+    private static final String HAS_ASKED_DEFAULT_LAUNCHER = "hasAskedDefaultLauncher";
 
     private TextView timeTextView;
     private TextView dateTextView;
@@ -80,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
                     Intent.ACTION_TIME_CHANGED.equals(intent.getAction()) ||
                     Intent.ACTION_TIMEZONE_CHANGED.equals(intent.getAction())) {
                 updateDateTime();
-                // Cập nhật thời tiết theo giờ/nửa giờ một lần nếu cần
+                // Cập nhật thời tiết theo giờ/nửa giờ một lần nếu cần (có thể giới hạn tần suất)
                 fetchWeather();
             }
         }
@@ -151,8 +161,8 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         loadAndDisplayApps();
         applySettings();
-        // Cập nhật thời tiết khi ứng dụng trở lại foreground
-        fetchWeather();
+        fetchWeather(); // Cập nhật thời tiết khi ứng dụng trở lại foreground
+        checkDefaultLauncher(); // Kiểm tra và hỏi người dùng về launcher mặc định
     }
 
     @Override
@@ -175,8 +185,6 @@ public class MainActivity extends AppCompatActivity {
                 SettingsActivity.class.getName()
         );
         appList.add(settingsApp);
-
-
 
         String selectedAppsJson = SettingsUtils.getSelectedAppsJson(this);
 
@@ -412,5 +420,62 @@ public class MainActivity extends AppCompatActivity {
     private static class Main {
         @SerializedName("temp")
         double temp;
+    }
+
+    // --- Phương thức kiểm tra và hỏi về launcher mặc định ---
+    private void checkDefaultLauncher() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        boolean hasAsked = prefs.getBoolean(HAS_ASKED_DEFAULT_LAUNCHER, false);
+
+        if (!hasAsked && !isMyLauncherDefault()) {
+            showSetDefaultLauncherDialog();
+            prefs.edit().putBoolean(HAS_ASKED_DEFAULT_LAUNCHER, true).apply(); // Đánh dấu đã hỏi
+        }
+    }
+
+    private boolean isMyLauncherDefault() {
+        // Tạo Intent mà Android sử dụng để tìm launcher mặc định
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_HOME);
+
+        // Lấy thông tin về Activity sẽ xử lý Intent này MẶC ĐỊNH
+        ResolveInfo resolveInfo = getPackageManager().resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY);
+
+        // Nếu có một Activity xử lý Intent này và package của nó trùng với package của ứng dụng của bạn,
+        // thì ứng dụng của bạn là launcher mặc định.
+        return resolveInfo != null && getPackageName().equals(resolveInfo.activityInfo.packageName);
+    }
+
+
+    private void showSetDefaultLauncherDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Đặt làm Launcher mặc định")
+                .setMessage("Bạn có muốn đặt ứng dụng SeniorCare làm màn hình chính mặc định không? Điều này sẽ giúp trải nghiệm người dùng tốt hơn.")
+                .setPositiveButton("CÓ", (dialog, which) -> {
+                    // Mở cài đặt để người dùng chọn launcher mặc định
+                    try {
+                        Intent intent = new Intent(Settings.ACTION_HOME_SETTINGS);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(intent);
+                    } catch (ActivityNotFoundException e) {
+                        Log.e(TAG, "Không thể mở cài đặt HOME_SETTINGS. Thử cách khác.", e);
+                        Toast.makeText(this, "Không thể mở cài đặt Launcher mặc định. Vui lòng tìm 'Ứng dụng mặc định' trong cài đặt điện thoại của bạn.", Toast.LENGTH_LONG).show();
+                        // Fallback: Mở cài đặt ứng dụng chung nếu không tìm thấy cài đặt Home cụ thể
+                        Intent generalAppSettingsIntent = new Intent(Settings.ACTION_APPLICATION_SETTINGS);
+                        generalAppSettingsIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        try {
+                            startActivity(generalAppSettingsIntent);
+                        } catch (ActivityNotFoundException ex) {
+                            Log.e(TAG, "Không thể mở cài đặt ứng dụng chung.", ex);
+                            Toast.makeText(this, "Không thể mở cài đặt ứng dụng. Vui lòng vào Cài đặt -> Ứng dụng & thông báo -> Ứng dụng mặc định -> Ứng dụng Home để chọn SeniorCare thủ công.", Toast.LENGTH_LONG).show();
+                        }
+                    }
+                })
+                .setNegativeButton("KHÔNG", (dialog, which) -> {
+                    Toast.makeText(this, "Bạn có thể thay đổi trong cài đặt thiết bị bất cứ lúc nào.", Toast.LENGTH_LONG).show();
+                    dialog.dismiss();
+                })
+                .setCancelable(false) // Không cho phép đóng hộp thoại khi nhấn ra ngoài
+                .show();
     }
 }
