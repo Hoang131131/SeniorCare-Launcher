@@ -1,4 +1,4 @@
-package ntu.edu.seniorcare;
+package ntu.edu.seniorcare.apps;
 
 import android.graphics.drawable.Drawable;
 import java.io.Serializable;

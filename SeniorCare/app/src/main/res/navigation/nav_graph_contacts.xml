@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph_contacts"
+    app:startDestination="@id/contactsListFragment">
+
+    <fragment
+        android:id="@+id/contactsListFragment"
+        android:name="ntu.edu.seniorcare.contact.contacts.ContactsListFragment"
+        android:label="Danh bạ"
+        tools:layout="@layout/fragment_contacts_list" />
+
+    <fragment
+        android:id="@+id/missedCallsFragment"
+        android:name="ntu.edu.seniorcare.contact.missedcalls.MissedCallsFragment"
+        android:label="Cuộc gọi nhỡ"
+        tools:layout="@layout/fragment_missed_calls" />
+
+</navigation>

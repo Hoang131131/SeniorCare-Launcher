@@ -1,4 +1,4 @@
-package ntu.edu.seniorcare;
+package ntu.edu.seniorcare.contact.contacts;
 
 import java.io.Serializable;
 

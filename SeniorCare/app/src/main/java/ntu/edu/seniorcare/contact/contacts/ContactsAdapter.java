@@ -1,4 +1,4 @@
-package ntu.edu.seniorcare;
+package ntu.edu.seniorcare.contact.contacts;
 
 import android.Manifest;
 import android.content.Context;
@@ -18,6 +18,8 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
+
+import ntu.edu.seniorcare.R;
 
 public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ContactViewHolder> {
 

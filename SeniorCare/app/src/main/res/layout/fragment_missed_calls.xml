@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F0F0F0"
+    android:paddingTop="50dp"
+    tools:context=".contact.missedcalls.MissedCallsFragment">
+
+    <TextView
+        android:id="@+id/no_missed_calls_text"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:text="Không có cuộc gọi nhỡ nào từ danh bạ."
+        android:textSize="18sp"
+        android:visibility="gone" /> <!-- Mặc định ẩn -->
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/missed_calls_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:scrollbars="vertical" />
+
+</LinearLayout>

@@ -1,4 +1,4 @@
-package ntu.edu.seniorcare;
+package ntu.edu.seniorcare.settings;
 
 import android.widget.SeekBar;
 

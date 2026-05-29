@@ -1,4 +1,4 @@
-package ntu.edu.seniorcare;
+package ntu.edu.seniorcare.sms;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,6 +9,8 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
+
+import ntu.edu.seniorcare.R;
 
 public class SmsAdapter extends RecyclerView.Adapter<SmsAdapter.SmsViewHolder> {
 

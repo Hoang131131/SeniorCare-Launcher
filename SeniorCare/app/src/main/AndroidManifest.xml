@@ -13,8 +13,8 @@
     <uses-permission android:name="android.permission.BROADCAST_STICKY" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.WRITE_SETTINGS" tools:ignore="ProtectedPermissions" />
-    <uses-permission android:name="android.permission.READ_CONTACTS" />
-    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.CALL_PHONE"/>
+    <uses-permission android:name="android.permission.READ_CALL_LOG" />
 
 
     <application
@@ -42,18 +42,18 @@
         </activity>
 
         <activity
-        android:name=".SettingsActivity"
+        android:name=".settings.SettingsActivity"
         android:exported="true"
         android:label="Cài đặt">
         </activity>
 
         <activity
-            android:name=".SmsActivity"
+            android:name=".sms.SmsActivity"
             android:exported="true"
             android:label="Tin nhắn">
         </activity>
         <activity
-            android:name=".ContactsActivity"
+            android:name=".contact.ContactsActivity"
             android:exported="true"
             android:label="Danh bạ">
         </activity>

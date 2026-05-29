@@ -1,4 +1,4 @@
-package ntu.edu.seniorcare;
+package ntu.edu.seniorcare.sms;
 
 // Lớp model để lưu trữ thông tin tin nhắn
 public class SmsInfo {

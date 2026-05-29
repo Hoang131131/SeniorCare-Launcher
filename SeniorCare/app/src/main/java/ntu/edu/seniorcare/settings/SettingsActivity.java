@@ -1,14 +1,10 @@
-package ntu.edu.seniorcare;
+package ntu.edu.seniorcare.settings;
 
 import android.content.ActivityNotFoundException;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.Settings;
@@ -17,7 +13,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
-import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -37,6 +32,13 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import ntu.edu.seniorcare.apps.AppInfo;
+import ntu.edu.seniorcare.contact.ContactsActivity;
+import ntu.edu.seniorcare.R;
+import ntu.edu.seniorcare.sms.SmsActivity;
+import ntu.edu.seniorcare.apps.InstalledAppAdapter;
+import ntu.edu.seniorcare.apps.SelectedAppAdapter;
 
 public class SettingsActivity extends AppCompatActivity {
 

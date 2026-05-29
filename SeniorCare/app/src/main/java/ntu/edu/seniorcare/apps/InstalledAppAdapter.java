@@ -1,4 +1,4 @@
-package ntu.edu.seniorcare;
+package ntu.edu.seniorcare.apps;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -17,6 +17,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import ntu.edu.seniorcare.contact.ContactsActivity;
+import ntu.edu.seniorcare.R;
+import ntu.edu.seniorcare.sms.SmsActivity;
 
 public class InstalledAppAdapter extends RecyclerView.Adapter<InstalledAppAdapter.ViewHolder> {
 

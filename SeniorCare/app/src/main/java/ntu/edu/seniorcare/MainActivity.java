@@ -1,11 +1,6 @@
 package ntu.edu.seniorcare;
 
 
-import static ntu.edu.seniorcare.SettingsUtils.MAX_ICON_3_COLUMNS;
-import static ntu.edu.seniorcare.SettingsUtils.MAX_ICON_4_COLUMNS;
-import static ntu.edu.seniorcare.SettingsUtils.MAX_TEXT_3_COLUMNS;
-import static ntu.edu.seniorcare.SettingsUtils.MAX_TEXT_4_COLUMNS;
-
 import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -33,10 +28,16 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects; // Import Objects để dùng Objects.equals
+
+import ntu.edu.seniorcare.apps.AppAdapter;
+import ntu.edu.seniorcare.apps.AppInfo;
+import ntu.edu.seniorcare.contact.ContactsActivity;
+import ntu.edu.seniorcare.settings.SettingsActivity;
+import ntu.edu.seniorcare.settings.SettingsUtils;
+import ntu.edu.seniorcare.sms.SmsActivity;
 
 public class MainActivity extends AppCompatActivity {
 

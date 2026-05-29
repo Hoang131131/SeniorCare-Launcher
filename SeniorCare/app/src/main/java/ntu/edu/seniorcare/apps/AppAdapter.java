@@ -1,4 +1,4 @@
-package ntu.edu.seniorcare;
+package ntu.edu.seniorcare.apps;
 
 import android.content.Context;
 import android.content.Intent;
@@ -17,6 +17,10 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
+
+import ntu.edu.seniorcare.contact.ContactsActivity;
+import ntu.edu.seniorcare.R;
+import ntu.edu.seniorcare.sms.SmsActivity;
 
 public class AppAdapter extends RecyclerView.Adapter<AppAdapter.AppViewHolder> {
 

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/contactsListFragment"
+        android:icon="@drawable/ic_call"
+        android:title="Danh bạ" />
+
+    <item
+        android:id="@+id/missedCallsFragment"
+        android:icon="@drawable/ic_call_missed"
+        android:title="Cuộc gọi nhỡ" />
+</menu>
