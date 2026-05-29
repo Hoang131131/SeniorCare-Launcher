@@ -352,8 +352,6 @@ public class SettingsActivity extends AppCompatActivity {
                                 appIcon = getResources().getDrawable(R.drawable.ic_message, null);
                             } else if (savedApp.getClassName().equals(ContactsActivity.class.getName())) {
                                 appIcon = getResources().getDrawable(R.drawable.ic_contacts, null);
-                            } else if (savedApp.getClassName().equals(SettingsActivity.class.getName())) {
-                                appIcon = getResources().getDrawable(R.drawable.ic_settings, null);
                             }
                         }
                     }
@@ -463,8 +461,7 @@ public class SettingsActivity extends AppCompatActivity {
 
             if (packageName.equals(getPackageName()) &&
                     (className.equals(SmsActivity.class.getName()) ||
-                            className.equals(ContactsActivity.class.getName()) ||
-                            className.equals(SettingsActivity.class.getName()))) {
+                            className.equals(ContactsActivity.class.getName()))) {
                 continue;
             }
 
@@ -477,7 +474,6 @@ public class SettingsActivity extends AppCompatActivity {
 
         addInternalAppIfMissing(apps, "Tin nhắn", SmsActivity.class.getName(), R.drawable.ic_message);
         addInternalAppIfMissing(apps, "Danh bạ", ContactsActivity.class.getName(), R.drawable.ic_contacts);
-        addInternalAppIfMissing(apps, "Cài đặt", SettingsActivity.class.getName(), R.drawable.ic_settings);
 
 
         Collections.sort(apps, (app1, app2) -> app1.getAppName().compareToIgnoreCase(app2.getAppName()));

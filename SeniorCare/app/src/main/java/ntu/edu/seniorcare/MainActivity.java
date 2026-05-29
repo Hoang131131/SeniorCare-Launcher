@@ -213,8 +213,6 @@ public class MainActivity extends AppCompatActivity {
                                 appIcon = getResources().getDrawable(R.drawable.ic_message, null);
                             } else if (Objects.equals(savedApp.getClassName(), ContactsActivity.class.getName())) {
                                 appIcon = getResources().getDrawable(R.drawable.ic_contacts, null);
-                            } else if (Objects.equals(savedApp.getClassName(), SettingsActivity.class.getName())) {
-                                appIcon = getResources().getDrawable(R.drawable.ic_settings, null);
                             }
                         }
 
