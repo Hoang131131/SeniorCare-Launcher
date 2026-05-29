@@ -120,12 +120,9 @@ public class MainActivity extends AppCompatActivity {
         appList.clear();
         PackageManager pm = getPackageManager();
 
-        // -----------------------------------------------------------------
-        // Thêm SettingsActivity, SmsActivity, ContactsActivity vào danh sách ứng dụng cố định
-        // Đây là cách bạn đảm bảo chúng luôn hiển thị và không bị xóa khỏi danh sách selectedApps
-        // và cũng giúp tránh phải chọn lại từ danh sách ứng dụng đã cài đặt.
 
-        // SettingsActivity
+        // Thêm SettingsActivity vào danh sách ứng dụng cố định
+
         AppInfo settingsApp = new AppInfo(
                 "Cài đặt",
                 getResources().getDrawable(R.drawable.ic_settings, null),
@@ -134,25 +131,7 @@ public class MainActivity extends AppCompatActivity {
         );
         appList.add(settingsApp);
 
-        // SmsActivity
-        AppInfo smsApp = new AppInfo(
-                "Tin nhắn",
-                getResources().getDrawable(R.drawable.ic_message, null),
-                getPackageName(),
-                SmsActivity.class.getName()
-        );
-        appList.add(smsApp);
 
-        // ContactsActivity
-        AppInfo contactsApp = new AppInfo(
-                "Danh bạ",
-                getResources().getDrawable(R.drawable.ic_contacts, null),
-                getPackageName(),
-                ContactsActivity.class.getName()
-        );
-        appList.add(contactsApp);
-
-        // -----------------------------------------------------------------
 
         String selectedAppsJson = SettingsUtils.getSelectedAppsJson(this);
 
