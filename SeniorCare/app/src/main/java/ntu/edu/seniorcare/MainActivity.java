@@ -73,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView timeTextView;
     private TextView dateTextView;
     private TextView weatherTextView;
+    private TextView temperateTextView; // THÊM DÒNG NÀY ĐỂ KẾT NỐI VỚI temperate_text_view
     private AudioManager audioManager;
 
     private RecyclerView appGridRecyclerView;
@@ -115,6 +116,7 @@ public class MainActivity extends AppCompatActivity {
         timeTextView = findViewById(R.id.time_text_view);
         dateTextView = findViewById(R.id.date_text_view);
         weatherTextView = findViewById(R.id.weather_text_view);
+        temperateTextView = findViewById(R.id.temperate_text_view); // KHỞI TẠO temperateTextView
         ImageButton volumeUpButton = findViewById(R.id.volume_up_button);
         ImageButton volumeDownButton = findViewById(R.id.volume_down_button);
         appGridRecyclerView = findViewById(R.id.app_grid_recycler_view);
@@ -177,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
         appList.clear();
         PackageManager pm = getPackageManager();
 
-        // Thêm ứng dụng cài đặt mặc định
+        // Thêm ứng dụng cài đặt mặc định (fixed app)
         AppInfo settingsApp = new AppInfo(
                 "Cài đặt",
                 getResources().getDrawable(R.drawable.ic_settings, null),
@@ -195,18 +197,32 @@ public class MainActivity extends AppCompatActivity {
 
             if (savedApps != null) {
                 for (AppInfo savedApp : savedApps) {
-                    // Skip if app is already a fixed app (Settings, Contacts, SMS)
-                    boolean isFixedApp = (getPackageName().equals(savedApp.getPackageName()) &&
-                            (Objects.equals(savedApp.getClassName(), SettingsActivity.class.getName()) ||
-                                    Objects.equals(savedApp.getClassName(), ContactsActivity.class.getName()) ||
-                                    Objects.equals(savedApp.getClassName(), SmsActivity.class.getName())));
-                    if (isFixedApp) {
+                    // Chỉ bỏ qua nếu là SettingsActivity (fixed app)
+                    // SMSActivity và ContactsActivity sẽ được thêm nếu chúng nằm trong savedApps
+                    boolean isFixedSettingsApp = (getPackageName().equals(savedApp.getPackageName()) &&
+                            (Objects.equals(savedApp.getClassName(), SettingsActivity.class.getName())));
+                    if (isFixedSettingsApp) {
                         continue;
                     }
 
                     Drawable appIcon = null;
                     try {
-                        appIcon = pm.getApplicationIcon(savedApp.getPackageName());
+                        // Xử lý đặc biệt cho các Activity nội bộ (SMS, Contacts, Settings nếu cần)
+                        if (Objects.equals(savedApp.getPackageName(), getPackageName()) && savedApp.getClassName() != null) {
+                            if (Objects.equals(savedApp.getClassName(), SmsActivity.class.getName())) {
+                                appIcon = getResources().getDrawable(R.drawable.ic_message, null);
+                            } else if (Objects.equals(savedApp.getClassName(), ContactsActivity.class.getName())) {
+                                appIcon = getResources().getDrawable(R.drawable.ic_contacts, null);
+                            } else if (Objects.equals(savedApp.getClassName(), SettingsActivity.class.getName())) {
+                                appIcon = getResources().getDrawable(R.drawable.ic_settings, null);
+                            }
+                        }
+
+                        // Nếu không phải internal special case hoặc không tìm thấy drawable đặc biệt
+                        if (appIcon == null) {
+                            appIcon = pm.getApplicationIcon(savedApp.getPackageName());
+                        }
+
                         savedApp.setAppIcon(appIcon);
                         appList.add(savedApp);
                     } catch (PackageManager.NameNotFoundException e) {
@@ -322,6 +338,7 @@ public class MainActivity extends AppCompatActivity {
                 // Quyền vị trí bị từ chối
                 Toast.makeText(this, "Quyền truy cập vị trí bị từ chối. Không thể lấy thông tin thời tiết.", Toast.LENGTH_LONG).show();
                 weatherTextView.setText("Thời tiết: N/A");
+                temperateTextView.setText("N/A"); // ĐẶT LẠI temperateTextView KHI KHÔNG CÓ QUYỀN
             }
         }
     }
@@ -336,12 +353,14 @@ public class MainActivity extends AppCompatActivity {
                     } else {
                         Log.w(TAG, "Không thể lấy vị trí cuối cùng.");
                         weatherTextView.setText("Thời tiết: N/A");
+                        temperateTextView.setText("N/A"); // ĐẶT LẠI temperateTextView
                         Toast.makeText(this, "Không thể xác định vị trí hiện tại.", Toast.LENGTH_SHORT).show();
                     }
                 })
                 .addOnFailureListener(this, e -> {
                     Log.e(TAG, "Lỗi khi lấy vị trí: " + e.getMessage());
                     weatherTextView.setText("Thời tiết: N/A");
+                    temperateTextView.setText("N/A"); // ĐẶT LẠI temperateTextView
                     Toast.makeText(this, "Lỗi khi lấy vị trí.", Toast.LENGTH_SHORT).show();
                 });
     }
@@ -354,6 +373,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             // Nếu chưa có quyền, sẽ yêu cầu lại hoặc hiển thị N/A
             weatherTextView.setText("Thời tiết: N/A");
+            temperateTextView.setText("N/A"); // ĐẶT LẠI temperateTextView
         }
     }
 
@@ -361,7 +381,10 @@ public class MainActivity extends AppCompatActivity {
     private void fetchWeatherFromApi(double lat, double lon) {
         if (OPENWEATHER_API_KEY.equals("YOUR_OPENWEATHERMAP_API_KEY")) {
             Log.e(TAG, "Vui lòng thay thế YOUR_OPENWEATHERMAP_API_KEY bằng API key thực của bạn.");
-            runOnUiThread(() -> weatherTextView.setText("Thời tiết: Lỗi API Key"));
+            runOnUiThread(() -> {
+                weatherTextView.setText("Lỗi API Key");
+                temperateTextView.setText("N/A"); // ĐẶT LẠI temperateTextView
+            });
             return;
         }
 
@@ -375,7 +398,10 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onFailure(@NonNull Call call, @NonNull IOException e) {
                     Log.e(TAG, "Lỗi khi gọi API thời tiết: " + e.getMessage());
-                    runOnUiThread(() -> weatherTextView.setText("Thời tiết: Lỗi mạng"));
+                    runOnUiThread(() -> {
+                        weatherTextView.setText("Lỗi mạng");
+                        temperateTextView.setText("N/A"); // ĐẶT LẠI temperateTextView
+                    });
                 }
 
                 @Override
@@ -390,14 +416,23 @@ public class MainActivity extends AppCompatActivity {
                             final String temperature = String.format(Locale.getDefault(), "%.0f°C", weatherResponse.main.temp);
                             final String description = capitalizeFirstLetter(weatherResponse.weather.get(0).description);
 
-                            runOnUiThread(() -> weatherTextView.setText(description + " " + temperature));
+                            runOnUiThread(() -> {
+                                temperateTextView.setText(temperature); // CẬP NHẬT temperateTextView
+                                weatherTextView.setText(description); // CẬP NHẬT weatherTextView
+                            });
                         } else {
                             Log.e(TAG, "Dữ liệu thời tiết không hợp lệ.");
-                            runOnUiThread(() -> weatherTextView.setText("Thời tiết: Lỗi dữ liệu"));
+                            runOnUiThread(() -> {
+                                weatherTextView.setText("Lỗi dữ liệu");
+                                temperateTextView.setText("N/A"); // ĐẶT LẠI temperateTextView
+                            });
                         }
                     } else {
                         Log.e(TAG, "Phản hồi API thời tiết không thành công: " + response.code() + " - " + response.message());
-                        runOnUiThread(() -> weatherTextView.setText("Thời tiết: Lỗi"));
+                        runOnUiThread(() -> {
+                            weatherTextView.setText("Lỗi");
+                            temperateTextView.setText("N/A"); // ĐẶT LẠI temperateTextView
+                        });
                     }
                 }
             });
