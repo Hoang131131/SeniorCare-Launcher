@@ -1,6 +1,6 @@
 package ntu.edu.seniorcare;
 
-
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -16,13 +16,20 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.gson.Gson;
+import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
 
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -30,7 +37,9 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects; // Import Objects để dùng Objects.equals
+import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import ntu.edu.seniorcare.apps.AppAdapter;
 import ntu.edu.seniorcare.apps.AppInfo;
@@ -38,8 +47,18 @@ import ntu.edu.seniorcare.contact.ContactsActivity;
 import ntu.edu.seniorcare.settings.SettingsActivity;
 import ntu.edu.seniorcare.settings.SettingsUtils;
 import ntu.edu.seniorcare.sms.SmsActivity;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
+
+    private static final String TAG = "MainActivity";
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
+    private static final String OPENWEATHER_API_KEY = "555f6b582f3ad5b9bf601a9380617851";
+    private static final String WEATHER_API_URL = "https://api.openweathermap.org/data/2.5/weather?";
 
     private TextView timeTextView;
     private TextView dateTextView;
@@ -50,6 +69,10 @@ public class MainActivity extends AppCompatActivity {
     private AppAdapter appAdapter;
     private List<AppInfo> appList;
 
+    private FusedLocationProviderClient fusedLocationClient;
+    private OkHttpClient httpClient;
+    private ExecutorService weatherExecutorService;
+
     private BroadcastReceiver timeReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -57,6 +80,8 @@ public class MainActivity extends AppCompatActivity {
                     Intent.ACTION_TIME_CHANGED.equals(intent.getAction()) ||
                     Intent.ACTION_TIMEZONE_CHANGED.equals(intent.getAction())) {
                 updateDateTime();
+                // Cập nhật thời tiết theo giờ/nửa giờ một lần nếu cần
+                fetchWeather();
             }
         }
     };
@@ -66,11 +91,12 @@ public class MainActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             if (SettingsActivity.ACTION_UPDATE_LAUNCHER.equals(intent.getAction())) {
                 applySettings();
-                loadAndDisplayApps(); // Cần load lại app để cập nhật danh sách đã chọn và áp dụng icon mới
+                loadAndDisplayApps();
             }
         }
     };
 
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -84,6 +110,9 @@ public class MainActivity extends AppCompatActivity {
         appGridRecyclerView = findViewById(R.id.app_grid_recycler_view);
 
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        httpClient = new OkHttpClient();
+        weatherExecutorService = Executors.newSingleThreadExecutor();
 
         updateDateTime();
 
@@ -106,23 +135,39 @@ public class MainActivity extends AppCompatActivity {
             registerReceiver(settingsUpdateReceiver, settingsFilter);
         }
 
-        weatherTextView.setText("Thời tiết: Nắng"); // Placeholder
-
         volumeUpButton.setOnClickListener(v -> adjustVolume(true));
         volumeDownButton.setOnClickListener(v -> adjustVolume(false));
 
         appList = new ArrayList<>();
         loadAndDisplayApps();
         applySettings();
+
+        // Lấy và hiển thị thời tiết ban đầu
+        requestLocationPermissions();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadAndDisplayApps();
+        applySettings();
+        // Cập nhật thời tiết khi ứng dụng trở lại foreground
+        fetchWeather();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(timeReceiver);
+        unregisterReceiver(settingsUpdateReceiver);
+        weatherExecutorService.shutdownNow();
     }
 
     private void loadAndDisplayApps() {
         appList.clear();
         PackageManager pm = getPackageManager();
 
-
-        // Thêm SettingsActivity vào danh sách ứng dụng cố định
-
+        // Thêm ứng dụng cài đặt mặc định
         AppInfo settingsApp = new AppInfo(
                 "Cài đặt",
                 getResources().getDrawable(R.drawable.ic_settings, null),
@@ -142,12 +187,12 @@ public class MainActivity extends AppCompatActivity {
 
             if (savedApps != null) {
                 for (AppInfo savedApp : savedApps) {
-                    // Kiểm tra nếu ứng dụng đã tồn tại (là các ứng dụng cố định của chúng ta) thì bỏ qua
-                    // Sử dụng Objects.equals cho className để tránh NullPointerException
-                    if (getPackageName().equals(savedApp.getPackageName()) &&
+                    // Skip if app is already a fixed app (Settings, Contacts, SMS)
+                    boolean isFixedApp = (getPackageName().equals(savedApp.getPackageName()) &&
                             (Objects.equals(savedApp.getClassName(), SettingsActivity.class.getName()) ||
-                                    Objects.equals(savedApp.getClassName(), SmsActivity.class.getName()) ||
-                                    Objects.equals(savedApp.getClassName(), ContactsActivity.class.getName()))) {
+                                    Objects.equals(savedApp.getClassName(), ContactsActivity.class.getName()) ||
+                                    Objects.equals(savedApp.getClassName(), SmsActivity.class.getName())));
+                    if (isFixedApp) {
                         continue;
                     }
 
@@ -158,11 +203,11 @@ public class MainActivity extends AppCompatActivity {
                         appList.add(savedApp);
                     } catch (PackageManager.NameNotFoundException e) {
                         Log.e("MainActivity", "App icon not found for package: " + savedApp.getPackageName() + ". Using default.", e);
-                        savedApp.setAppIcon(getResources().getDrawable(android.R.drawable.sym_def_app_icon, null));
+                        savedApp.setAppIcon(ContextCompat.getDrawable(this, android.R.drawable.sym_def_app_icon));
                         appList.add(savedApp);
                     } catch (Exception e) {
                         Log.e("MainActivity", "Error loading app icon for package: " + savedApp.getPackageName() + ". Using default.", e);
-                        savedApp.setAppIcon(getResources().getDrawable(android.R.drawable.sym_def_app_icon, null));
+                        savedApp.setAppIcon(ContextCompat.getDrawable(this, android.R.drawable.sym_def_app_icon));
                         appList.add(savedApp);
                     }
                 }
@@ -171,6 +216,7 @@ public class MainActivity extends AppCompatActivity {
         Collections.sort(appList, (app1, app2) -> app1.getAppName().compareToIgnoreCase(app2.getAppName()));
 
         if (appAdapter == null) {
+            appGridRecyclerView.setLayoutManager(new GridLayoutManager(this, SettingsUtils.getNumColumns(this)));
             appAdapter = new AppAdapter(this, appList);
             appGridRecyclerView.setAdapter(appAdapter);
         } else {
@@ -180,7 +226,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void applySettings() {
-        // Factors are for the adapter to scale drawing
         float iconSizeFactor = (float) SettingsUtils.getIconSizePercentage(this) / 100f;
         float textSizeFactor = (float) SettingsUtils.getTextSizePercentage(this) / 100f;
 
@@ -245,17 +290,127 @@ public class MainActivity extends AppCompatActivity {
         Toast.makeText(this, "Âm lượng: " + (int)((double)newVolume / maxVolume * 100) + "%", Toast.LENGTH_SHORT).show();
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        loadAndDisplayApps();
-        applySettings();
+    // --- Xử lý quyền vị trí và thời tiết ---
+    private void requestLocationPermissions() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                    LOCATION_PERMISSION_REQUEST_CODE);
+        } else {
+            // Quyền đã được cấp, lấy vị trí
+            getLocationAndFetchWeather();
+        }
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        unregisterReceiver(timeReceiver);
-        unregisterReceiver(settingsUpdateReceiver);
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Quyền vị trí được cấp
+                getLocationAndFetchWeather();
+            } else {
+                // Quyền vị trí bị từ chối
+                Toast.makeText(this, "Quyền truy cập vị trí bị từ chối. Không thể lấy thông tin thời tiết.", Toast.LENGTH_LONG).show();
+                weatherTextView.setText("Thời tiết: N/A");
+            }
+        }
+    }
+
+    @SuppressLint("MissingPermission") // Quyền đã được kiểm tra trong requestLocationPermissions
+    private void getLocationAndFetchWeather() {
+        fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(this, location -> {
+                    if (location != null) {
+                        Log.d(TAG, "Vị trí: " + location.getLatitude() + ", " + location.getLongitude());
+                        fetchWeatherFromApi(location.getLatitude(), location.getLongitude());
+                    } else {
+                        Log.w(TAG, "Không thể lấy vị trí cuối cùng.");
+                        weatherTextView.setText("Thời tiết: N/A");
+                        Toast.makeText(this, "Không thể xác định vị trí hiện tại.", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(this, e -> {
+                    Log.e(TAG, "Lỗi khi lấy vị trí: " + e.getMessage());
+                    weatherTextView.setText("Thời tiết: N/A");
+                    Toast.makeText(this, "Lỗi khi lấy vị trí.", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void fetchWeather() {
+        // Chỉ gọi lại khi đã có quyền
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            getLocationAndFetchWeather();
+        } else {
+            // Nếu chưa có quyền, sẽ yêu cầu lại hoặc hiển thị N/A
+            weatherTextView.setText("Thời tiết: N/A");
+        }
+    }
+
+
+    private void fetchWeatherFromApi(double lat, double lon) {
+        if (OPENWEATHER_API_KEY.equals("YOUR_OPENWEATHERMAP_API_KEY")) {
+            Log.e(TAG, "Vui lòng thay thế YOUR_OPENWEATHERMAP_API_KEY bằng API key thực của bạn.");
+            runOnUiThread(() -> weatherTextView.setText("Thời tiết: Lỗi API Key"));
+            return;
+        }
+
+        String url = WEATHER_API_URL + "lat=" + lat + "&lon=" + lon + "&appid=" + OPENWEATHER_API_KEY + "&units=metric&lang=vi";
+        Log.d(TAG, "Gọi API thời tiết: " + url);
+
+        Request request = new Request.Builder().url(url).build();
+
+        weatherExecutorService.execute(() -> {
+            httpClient.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                    Log.e(TAG, "Lỗi khi gọi API thời tiết: " + e.getMessage());
+                    runOnUiThread(() -> weatherTextView.setText("Thời tiết: Lỗi mạng"));
+                }
+
+                @Override
+                public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                    if (response.isSuccessful() && response.body() != null) {
+                        String responseData = response.body().string();
+                        Log.d(TAG, "Dữ liệu thời tiết: " + responseData);
+                        Gson gson = new Gson();
+                        WeatherResponse weatherResponse = gson.fromJson(responseData, WeatherResponse.class);
+
+                        if (weatherResponse != null && weatherResponse.main != null && weatherResponse.weather != null && !weatherResponse.weather.isEmpty()) {
+                            final String temperature = String.format(Locale.getDefault(), "%.0f°C", weatherResponse.main.temp);
+                            final String description = capitalizeFirstLetter(weatherResponse.weather.get(0).description);
+
+                            runOnUiThread(() -> weatherTextView.setText(description + " " + temperature));
+                        } else {
+                            Log.e(TAG, "Dữ liệu thời tiết không hợp lệ.");
+                            runOnUiThread(() -> weatherTextView.setText("Thời tiết: Lỗi dữ liệu"));
+                        }
+                    } else {
+                        Log.e(TAG, "Phản hồi API thời tiết không thành công: " + response.code() + " - " + response.message());
+                        runOnUiThread(() -> weatherTextView.setText("Thời tiết: Lỗi"));
+                    }
+                }
+            });
+        });
+    }
+
+    // --- Các lớp POJO cho việc parse JSON từ OpenWeatherMap ---
+    private static class WeatherResponse {
+        @SerializedName("weather")
+        List<Weather> weather;
+        @SerializedName("main")
+        Main main;
+    }
+
+    private static class Weather {
+        @SerializedName("description")
+        String description;
+    }
+
+    private static class Main {
+        @SerializedName("temp")
+        double temp;
     }
 }
