@@ -1,4 +1,4 @@
-package ntu.edu.seniorcare.sms;
+package ntu.edu.seniorcare.sms; // Đảm bảo package đúng
 
 import android.Manifest;
 import android.content.ContentResolver;
@@ -7,6 +7,10 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.provider.Telephony;
+import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -17,19 +21,28 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-import ntu.edu.seniorcare.R;
+import ntu.edu.seniorcare.R; // Đảm bảo import R đúng nếu package khác
 
 public class SmsActivity extends AppCompatActivity {
 
-    private static final int PERMISSION_REQUEST_CODE = 100;
+    private static final String TAG = "SmsActivity";
+    private static final int PERMISSIONS_REQUEST_CODE = 200; // Request code cho SMS và Contacts
+
     private RecyclerView smsRecyclerView;
     private SmsAdapter smsAdapter;
-    private List<SmsInfo> smsList;
-    private Map<String, String> contactNumbersMap; // Map để lưu trữ số điện thoại từ danh bạ
+    private List<SmsInfo> latestSmsConversations; // Danh sách các tin nhắn gần nhất cho mỗi cuộc hội thoại
+    private TextView noSmsTextView; // Thêm TextView để hiển thị khi không có SMS
+
+    private Map<String, String> contactsMap; // key: normalized number, value: contact name
+    private ExecutorService executorService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,119 +50,206 @@ public class SmsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_sms);
 
         smsRecyclerView = findViewById(R.id.sms_recycler_view);
+        noSmsTextView = findViewById(R.id.no_sms_text); // Cần thêm TextView này vào activity_sms.xml
         smsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        smsList = new ArrayList<>();
-        smsAdapter = new SmsAdapter(smsList);
+
+        latestSmsConversations = new ArrayList<>();
+        smsAdapter = new SmsAdapter(this, latestSmsConversations);
         smsRecyclerView.setAdapter(smsAdapter);
 
-        checkPermissionsAndLoadSms();
+        contactsMap = new HashMap<>();
+        executorService = Executors.newSingleThreadExecutor();
+
+        // Kiểm tra và yêu cầu quyền
+        checkAndRequestPermissions();
     }
 
-    private void checkPermissionsAndLoadSms() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED ||
-                ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.READ_SMS, Manifest.permission.READ_CONTACTS},
-                    PERMISSION_REQUEST_CODE);
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Tải lại tin nhắn mỗi khi Activity resume (để cập nhật tin nhắn mới)
+        checkAndRequestPermissions();
+    }
+
+    private void checkAndRequestPermissions() {
+        List<String> permissionsNeeded = new ArrayList<>();
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED) {
+            permissionsNeeded.add(Manifest.permission.READ_SMS);
+        }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+            permissionsNeeded.add(Manifest.permission.READ_CONTACTS);
+        }
+
+        if (!permissionsNeeded.isEmpty()) {
+            ActivityCompat.requestPermissions(this, permissionsNeeded.toArray(new String[0]), PERMISSIONS_REQUEST_CODE);
         } else {
-            loadContacts();
-            loadSmsMessages();
+            loadSmsConversations();
         }
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == PERMISSION_REQUEST_CODE) {
-            if (grantResults.length > 0 &&
-                    grantResults[0] == PackageManager.PERMISSION_GRANTED &&
-                    grantResults[1] == PackageManager.PERMISSION_GRANTED) {
-                loadContacts();
-                loadSmsMessages();
-            } else {
-                Toast.makeText(this, "Quyền đọc tin nhắn và danh bạ bị từ chối. Không thể hiển thị tin nhắn.", Toast.LENGTH_LONG).show();
-            }
-        }
-    }
-
-    private void loadContacts() {
-        contactNumbersMap = new HashMap<>();
-        ContentResolver cr = getContentResolver();
-        Cursor cursor = cr.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                new String[]{ContactsContract.CommonDataKinds.Phone.NUMBER, ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME},
-                null, null, null);
-
-        if (cursor != null) {
-            try {
-                while (cursor.moveToNext()) {
-                    String number = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.NUMBER));
-                    String name = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
-                    // Chuẩn hóa số điện thoại để so sánh (xóa ký tự không phải số)
-                    String normalizedNumber = number.replaceAll("[^\\d+]", "");
-                    if (!normalizedNumber.isEmpty()) {
-                        contactNumbersMap.put(normalizedNumber, name);
-                    }
+        if (requestCode == PERMISSIONS_REQUEST_CODE) {
+            boolean allGranted = true;
+            for (int result : grantResults) {
+                if (result != PackageManager.PERMISSION_GRANTED) {
+                    allGranted = false;
+                    break;
                 }
-            } finally {
-                cursor.close();
+            }
+            if (allGranted) {
+                loadSmsConversations();
+            } else {
+                Toast.makeText(this, "Quyền đọc SMS và Danh bạ bị từ chối. Không thể hiển thị tin nhắn.", Toast.LENGTH_LONG).show();
+                noSmsTextView.setText("Ứng dụng cần quyền đọc SMS và Danh bạ để hiển thị tin nhắn.");
+                noSmsTextView.setVisibility(View.VISIBLE);
+                smsRecyclerView.setVisibility(View.GONE);
+                latestSmsConversations.clear();
+                smsAdapter.notifyDataSetChanged();
             }
         }
     }
 
-    private void loadSmsMessages() {
-        if (contactNumbersMap == null || contactNumbersMap.isEmpty()) {
-            Toast.makeText(this, "Không thể tải danh bạ hoặc không có liên hệ nào. Chỉ hiển thị tin nhắn từ các số đã lưu.", Toast.LENGTH_LONG).show();
-            // Nếu không có danh bạ, có thể chọn hiển thị tất cả hoặc không hiển thị gì.
-            // Hiện tại, chúng ta sẽ không thêm tin nhắn nào nếu không có danh bạ để lọc.
-            smsAdapter.updateSmsList(new ArrayList<>()); // Clear existing list
-            return;
-        }
+    private void loadSmsConversations() {
+        executorService.execute(() -> {
+            // 1. Tải danh bạ trước để có tên liên hệ
+            loadContactsForLookup();
 
-        List<SmsInfo> fetchedSmsList = new ArrayList<>();
-        ContentResolver cr = getContentResolver();
-        Uri uri = Uri.parse("content://sms/inbox"); // Chỉ đọc tin nhắn đến (inbox)
+            // 2. Tải tất cả tin nhắn và nhóm lại
+            Map<String, SmsInfo> latestSmsMap = new HashMap<>(); // key: normalized address, value: latest SmsInfo
+            ContentResolver cr = getContentResolver();
 
-        // Các cột cần lấy từ tin nhắn
+            Uri smsUri = Telephony.Sms.CONTENT_URI; // Uri cho tất cả tin nhắn (inbox, sent, draft)
+            String[] projection = new String[]{
+                    Telephony.Sms.ADDRESS,
+                    Telephony.Sms.BODY,
+                    Telephony.Sms.DATE,
+                    Telephony.Sms.TYPE // Để phân biệt tin nhắn đến/đi
+            };
+            String selection = null; // Không lọc, lấy tất cả
+
+            Cursor cursor = null;
+            try {
+                cursor = cr.query(smsUri, projection, selection, null, Telephony.Sms.DATE + " DESC"); // Sắp xếp theo ngày giảm dần
+
+                if (cursor != null && cursor.moveToFirst()) {
+                    int addressColumn = cursor.getColumnIndex(Telephony.Sms.ADDRESS);
+                    int bodyColumn = cursor.getColumnIndex(Telephony.Sms.BODY);
+                    int dateColumn = cursor.getColumnIndex(Telephony.Sms.DATE);
+                    int typeColumn = cursor.getColumnIndex(Telephony.Sms.TYPE);
+
+                    do {
+                        String address = cursor.getString(addressColumn);
+                        String body = cursor.getString(bodyColumn);
+                        long date = cursor.getLong(dateColumn);
+                        int type = cursor.getInt(typeColumn);
+
+                        // Chỉ lấy tin nhắn từ INBOX hoặc SENT
+                        if (type == Telephony.Sms.MESSAGE_TYPE_INBOX || type == Telephony.Sms.MESSAGE_TYPE_SENT) {
+                            String normalizedAddress = normalizePhoneNumber(address);
+
+                            // Nếu số này không có trong danh bạ, chúng ta có thể bỏ qua hoặc hiển thị số.
+                            // Với yêu cầu của bạn, chỉ hiện từ danh bạ, nhưng tôi sẽ cho phép cả số không có tên để tránh mất tin nhắn.
+                            String senderName = contactsMap.getOrDefault(normalizedAddress, address);
+
+                            // Chỉ lưu tin nhắn mới nhất cho mỗi cuộc hội thoại
+                            if (!latestSmsMap.containsKey(normalizedAddress) || date > latestSmsMap.get(normalizedAddress).getTimestamp()) {
+                                latestSmsMap.put(normalizedAddress, new SmsInfo(senderName, address, body, date));
+                            }
+                        }
+                    } while (cursor.moveToNext());
+                }
+            } catch (SecurityException e) {
+                Log.e(TAG, "Lỗi quyền khi đọc SMS: " + e.getMessage());
+                runOnUiThread(() -> Toast.makeText(this, "Quyền đọc SMS bị từ chối.", Toast.LENGTH_LONG).show());
+            } finally {
+                if (cursor != null) {
+                    cursor.close();
+                }
+            }
+
+            // Cập nhật UI trên Main Thread
+            runOnUiThread(() -> {
+                latestSmsConversations.clear();
+                if (!latestSmsMap.isEmpty()) {
+                    // Sắp xếp các cuộc hội thoại theo thời gian tin nhắn gần nhất
+                    List<SmsInfo> sortedSms = new ArrayList<>(latestSmsMap.values());
+                    Collections.sort(sortedSms, (o1, o2) -> Long.compare(o2.getTimestamp(), o1.getTimestamp())); // Mới nhất lên đầu
+                    latestSmsConversations.addAll(sortedSms);
+                    noSmsTextView.setVisibility(View.GONE);
+                    smsRecyclerView.setVisibility(View.VISIBLE);
+                } else {
+                    noSmsTextView.setText("Không có tin nhắn nào.");
+                    noSmsTextView.setVisibility(View.VISIBLE);
+                    smsRecyclerView.setVisibility(View.GONE);
+                }
+                smsAdapter.updateSmsList(latestSmsConversations);
+            });
+        });
+    }
+
+    private void loadContactsForLookup() {
+        contactsMap.clear();
+        ContentResolver contentResolver = getContentResolver();
+
         String[] projection = new String[]{
-                "_id",      // ID tin nhắn
-                "address",  // Số điện thoại người gửi
-                "body",     // Nội dung tin nhắn
-                "date"      // Thời gian gửi (milliseconds since epoch)
+                ContactsContract.CommonDataKinds.Phone.NUMBER,
+                ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME
         };
 
-        Cursor cursor = cr.query(uri, projection, null, null, "date DESC"); // Sắp xếp theo ngày giảm dần
+        Cursor cursor = null;
+        try {
+            cursor = contentResolver.query(
+                    ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                    projection,
+                    null,
+                    null,
+                    null);
 
-        if (cursor != null) {
-            try {
-                int addressCol = cursor.getColumnIndexOrThrow("address");
-                int bodyCol = cursor.getColumnIndexOrThrow("body");
-                int dateCol = cursor.getColumnIndexOrThrow("date");
+            if (cursor != null) {
+                int numberColumnIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
+                int nameColumnIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME);
 
-                while (cursor.moveToNext()) {
-                    String address = cursor.getString(addressCol);
-                    String body = cursor.getString(bodyCol);
-                    long date = cursor.getLong(dateCol);
-
-                    // Chuẩn hóa số điện thoại của người gửi để so sánh với danh bạ
-                    String normalizedAddress = address.replaceAll("[^\\d+]", "");
-
-                    // Lọc tin nhắn: chỉ hiển thị nếu số người gửi có trong danh bạ
-                    if (contactNumbersMap.containsKey(normalizedAddress)) {
-                        String senderName = contactNumbersMap.get(normalizedAddress);
-                        if (senderName == null || senderName.isEmpty()) { // Fallback to number if name is empty
-                            senderName = address;
+                if (numberColumnIndex != -1 && nameColumnIndex != -1) {
+                    while (cursor.moveToNext()) {
+                        String number = cursor.getString(numberColumnIndex);
+                        String name = cursor.getString(nameColumnIndex);
+                        if (number != null && name != null) {
+                            contactsMap.put(normalizePhoneNumber(number), name);
                         }
-                        fetchedSmsList.add(new SmsInfo(senderName, body, date));
                     }
+                } else {
+                    Log.e(TAG, "Không tìm thấy cột NUMBER hoặc DISPLAY_NAME trong Cursor danh bạ.");
                 }
-            } finally {
+            }
+        } catch (SecurityException e) {
+            Log.e(TAG, "Lỗi quyền khi đọc danh bạ: " + e.getMessage());
+        } finally {
+            if (cursor != null) {
                 cursor.close();
             }
         }
+    }
 
-        // Cập nhật RecyclerView với danh sách tin nhắn đã lọc
-        smsList.clear();
-        smsList.addAll(fetchedSmsList);
-        smsAdapter.notifyDataSetChanged();
+    /**
+     * Chuẩn hóa số điện thoại. Loại bỏ các ký tự không phải số và cố gắng thống nhất định dạng.
+     */
+    private String normalizePhoneNumber(String phoneNumber) {
+        if (phoneNumber == null) return "";
+        String normalized = phoneNumber.replaceAll("[^\\d+]", "");
+
+        if (normalized.startsWith("0") && normalized.length() > 9) {
+            normalized = "+84" + normalized.substring(1);
+        } else if (normalized.startsWith("84") && normalized.length() > 9) {
+            normalized = "+" + normalized;
+        }
+        return normalized;
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        executorService.shutdownNow();
     }
 }

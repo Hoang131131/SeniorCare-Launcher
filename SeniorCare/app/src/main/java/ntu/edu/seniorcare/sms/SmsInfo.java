@@ -1,19 +1,28 @@
-package ntu.edu.seniorcare.sms;
+package ntu.edu.seniorcare.sms; // Đảm bảo package đúng
 
-// Lớp model để lưu trữ thông tin tin nhắn
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 public class SmsInfo {
-    private String sender;
+    private String sender;      // Tên người gửi (hoặc số nếu không có trong danh bạ)
+    private String address;     // Số điện thoại thực tế
     private String messageBody;
     private long timestamp;
 
-    public SmsInfo(String sender, String messageBody, long timestamp) {
+    public SmsInfo(String sender, String address, String messageBody, long timestamp) {
         this.sender = sender;
+        this.address = address;
         this.messageBody = messageBody;
         this.timestamp = timestamp;
     }
 
     public String getSender() {
         return sender;
+    }
+
+    public String getAddress() {
+        return address;
     }
 
     public String getMessageBody() {
@@ -24,11 +33,9 @@ public class SmsInfo {
         return timestamp;
     }
 
-    // You might want to add a method to get formatted timestamp
     public String getFormattedTimestamp() {
-        // Implement date formatting as needed
-        java.text.DateFormat dateFormat = android.text.format.DateFormat.getMediumDateFormat(null);
-        java.text.DateFormat timeFormat = android.text.format.DateFormat.getTimeFormat(null);
-        return dateFormat.format(new java.util.Date(timestamp)) + " " + timeFormat.format(new java.util.Date(timestamp));
+        // Định dạng "10:30 AM - 15/05/2024"
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm - dd/MM/yyyy", Locale.getDefault());
+        return sdf.format(new Date(timestamp));
     }
 }

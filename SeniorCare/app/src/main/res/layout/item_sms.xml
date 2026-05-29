@@ -2,29 +2,32 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="12dp"
     android:layout_marginBottom="8dp"
-    android:background="@drawable/message_bubble_background"
-    android:elevation="2dp">
+    android:background="#F5F5F5"
+    android:clickable="true"
+    android:elevation="2dp"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
+    android:orientation="vertical"
+    android:padding="12dp">
 
     <TextView
         android:id="@+id/text_sender"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textStyle="bold"
-        android:textSize="20sp"
+        android:text="Người gửi: (+84) 123 456 789"
         android:textColor="@android:color/black"
-        android:text="Người gửi: (+84) 123 456 789" />
+        android:textSize="20sp"
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/text_message_body"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:textSize="22sp"
+        android:text="Nội dung tin nhắn rất dài và quan trọng cần được hiển thị rõ ràng cho người lớn tuổi."
         android:textColor="@android:color/black"
-        android:text="Nội dung tin nhắn rất dài và quan trọng cần được hiển thị rõ ràng cho người lớn tuổi." />
+        android:textSize="22sp" />
 
     <TextView
         android:id="@+id/text_timestamp"
@@ -32,8 +35,8 @@
         android:layout_height="wrap_content"
         android:layout_gravity="end"
         android:layout_marginTop="4dp"
-        android:textSize="16sp"
+        android:text="10:30 AM - 15/05/2024"
         android:textColor="@android:color/darker_gray"
-        android:text="10:30 AM - 15/05/2024" />
+        android:textSize="16sp" />
 
 </LinearLayout>

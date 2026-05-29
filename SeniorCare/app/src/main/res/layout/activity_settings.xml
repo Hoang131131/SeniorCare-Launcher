@@ -22,7 +22,6 @@
             app:cardCornerRadius="8dp"
             app:cardElevation="2dp"
             app:contentPadding="16dp"
-            app:strokeColor="@android:color/darker_gray"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -52,12 +51,11 @@
                         android:layout_weight="1"
                         android:max="200"
                         android:min="0"
-                        android:progress="50"
                         android:paddingVertical="8dp"
-                        android:thumb="@drawable/seekbar_thumb"
+                        android:progress="50"
                         android:progressDrawable="@drawable/custom_seekbar"
                         android:splitTrack="false"
-                    />
+                        android:thumb="@drawable/seekbar_thumb" />
 
                     <TextView
                         android:id="@+id/icon_size_value_text_view"
@@ -83,7 +81,6 @@
             app:cardCornerRadius="8dp"
             app:cardElevation="2dp"
             app:contentPadding="16dp"
-            app:strokeColor="@android:color/darker_gray"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -113,12 +110,11 @@
                         android:layout_weight="1"
                         android:max="200"
                         android:min="0"
-                        android:progress="50"
                         android:paddingVertical="8dp"
-                        android:thumb="@drawable/seekbar_thumb"
+                        android:progress="50"
                         android:progressDrawable="@drawable/custom_seekbar"
                         android:splitTrack="false"
-                        />
+                        android:thumb="@drawable/seekbar_thumb" />
 
                     <TextView
                         android:id="@+id/text_size_value_text_view"
@@ -144,7 +140,6 @@
             app:cardCornerRadius="8dp"
             app:cardElevation="2dp"
             app:contentPadding="16dp"
-            app:strokeColor="@android:color/darker_gray"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -227,7 +222,6 @@
             app:cardCornerRadius="8dp"
             app:cardElevation="2dp"
             app:contentPadding="16dp"
-            app:strokeColor="@android:color/darker_gray"
             app:strokeWidth="1dp">
 
             <LinearLayout
