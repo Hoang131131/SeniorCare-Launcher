@@ -12,6 +12,11 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.util.DisplayMetrics;
+
+
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -75,32 +80,8 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.AppViewHolder> {
         AppInfo app = appList.get(position);
         holder.appName.setText(app.getAppName());
 
-        // ... (phần code xử lý icon không đổi) ...
-        Drawable appIconDrawable = app.getAppIcon();
-        if (appIconDrawable == null) {
-            if (app.getPackageName().equals(context.getPackageName())) {
-                if (app.getClassName() != null) {
-                    if (app.getClassName().equals(SmsActivity.class.getName())) {
-                        appIconDrawable = context.getResources().getDrawable(R.drawable.ic_message, null);
-                    } else if (app.getClassName().equals(ContactsActivity.class.getName())) {
-                        appIconDrawable = context.getResources().getDrawable(R.drawable.ic_contacts, null);
-                    }
-                }
-            }
-            if (appIconDrawable == null) {
-                try {
-                    PackageManager pm = context.getPackageManager();
-                    appIconDrawable = pm.getApplicationIcon(app.getPackageName());
-                } catch (PackageManager.NameNotFoundException e) {
-                    appIconDrawable = context.getResources().getDrawable(android.R.drawable.sym_def_app_icon, null);
-                }
-            }
-            if (appIconDrawable != null) {
-                app.setAppIcon(appIconDrawable);
-            }
-        }
+        Drawable appIconDrawable = getScaledAppIcon(app);
         holder.appIcon.setImageDrawable(appIconDrawable);
-
         int defaultIconSize = (int) context.getResources().getDimension(R.dimen.app_icon_default_size);
         ViewGroup.LayoutParams layoutParams = holder.appIcon.getLayoutParams();
         layoutParams.width = (int) (defaultIconSize * iconSizeFactor);
@@ -109,7 +90,6 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.AppViewHolder> {
 
         float defaultTextSizeSp = 14f;
         holder.appName.setTextSize(TypedValue.COMPLEX_UNIT_SP, defaultTextSizeSp * textSizeFactor);
-
 
         holder.itemView.setOnClickListener(v -> {
             Log.d("AppAdapter", "Item clicked at position: " + holder.getAdapterPosition());
@@ -167,6 +147,71 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.AppViewHolder> {
     @Override
     public int getItemCount() {
         return appList.size();
+    }
+
+    private Drawable getScaledAppIcon(AppInfo app) {
+        Drawable appIcon = app.getAppIcon();
+
+        if (appIcon == null) {
+            // Xử lý icon nội bộ
+            if (app.getPackageName().equals(context.getPackageName()) && app.getClassName() != null) {
+                if (app.getClassName().equals(SmsActivity.class.getName())) {
+                    appIcon = context.getResources().getDrawable(R.drawable.ic_message, null);
+                } else if (app.getClassName().equals(ContactsActivity.class.getName())) {
+                    appIcon = context.getResources().getDrawable(R.drawable.ic_contacts, null);
+                }
+            }
+
+            if (appIcon == null) {
+                try {
+                    PackageManager pm = context.getPackageManager();
+                    appIcon = pm.getApplicationIcon(app.getPackageName());
+                } catch (PackageManager.NameNotFoundException e) {
+                    Log.w("AppAdapter", "Icon not found for: " + app.getPackageName());
+                    appIcon = context.getResources().getDrawable(android.R.drawable.sym_def_app_icon, null);
+                }
+            }
+
+            if (appIcon != null) {
+                app.setAppIcon(appIcon);
+            }
+        }
+
+        if (appIcon instanceof BitmapDrawable) {
+            Bitmap originalBitmap = ((BitmapDrawable) appIcon).getBitmap();
+            if (originalBitmap != null) {
+                int originalWidth = originalBitmap.getWidth();
+                int screenWidth = getScreenWidth();
+                int optimalIconSize = calculateOptimalIconSize(screenWidth);
+
+                if (originalWidth > optimalIconSize) {
+                    Log.d("AppAdapter", "Scaling bitmap from " + originalWidth + "px to " + optimalIconSize + "px for: " + app.getAppName());
+                    try {
+                        Bitmap scaledBitmap = Bitmap.createScaledBitmap(
+                                originalBitmap,
+                                optimalIconSize,
+                                optimalIconSize,
+                                true
+                        );
+                        appIcon = new BitmapDrawable(context.getResources(), scaledBitmap);
+                    } catch (Exception e) {
+                        Log.e("AppAdapter", "Error scaling bitmap: " + e.getMessage());
+                    }
+                }
+            }
+        }
+
+        return appIcon;
+    }
+
+    private int calculateOptimalIconSize(int screenWidth) {
+        int optimalSize = screenWidth / 5;
+        return Math.max(optimalSize, 128);
+    }
+
+    private int getScreenWidth() {
+        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
+        return displayMetrics.widthPixels;
     }
 
     public static class AppViewHolder extends RecyclerView.ViewHolder {

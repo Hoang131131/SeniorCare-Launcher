@@ -309,7 +309,6 @@ public class MainActivity extends AppCompatActivity {
             newVolume = Math.max(currentVolume - volumeStep, 0);
         }
         audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newVolume, AudioManager.FLAG_SHOW_UI);
-        Toast.makeText(this, "Âm lượng: " + (int)((double)newVolume / maxVolume * 100) + "%", Toast.LENGTH_SHORT).show();
     }
 
     // --- Xử lý quyền vị trí và thời tiết ---

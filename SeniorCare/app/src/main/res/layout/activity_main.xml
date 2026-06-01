@@ -9,15 +9,6 @@
     tools:context=".MainActivity">
 
     <!-- Status Bar Overlay - Mờ mờ đen để làm nổi bật chữ trắng trên thanh trạng thái -->
-    <View
-        android:id="@+id/status_bar_overlay"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:background="#50000000"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHeight_percent="0.025" />
 
     <!-- Top Widget Area (1/4 screen height) -->
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -29,7 +20,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHeight_percent="0.25"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/status_bar_overlay">
+        app:layout_constraintTop_toTopOf="parent">
 
         <!-- Time and Date (Left 35%) -->
         <LinearLayout
@@ -103,7 +94,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_marginLeft="10dp"
-                    android:gravity="center"
+                    android:gravity="center|top"
                     android:text="Nắng"
                     android:textColor="@android:color/black"
                     android:textSize="28sp" />

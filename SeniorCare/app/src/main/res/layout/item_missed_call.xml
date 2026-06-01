@@ -36,7 +36,7 @@
                     android:layout_height="wrap_content"
                     android:text="Tên Người Gọi"
                     android:textColor="@android:color/black"
-                    android:textSize="28sp"
+                    android:textSize="24sp"
                     android:textStyle="bold"
                     tools:text="Tên Người Gọi Dài" />
 
@@ -47,7 +47,7 @@
                     android:layout_marginTop="4dp"
                     android:text="0123 456 789"
                     android:textColor="@android:color/black"
-                    android:textSize="22sp"
+                    android:textSize="20sp"
                     tools:text="0123 456 789" />
 
                 <!-- Chỉ giữ TextView cho giờ gọi -->

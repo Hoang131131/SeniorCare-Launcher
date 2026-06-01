@@ -8,16 +8,6 @@
     android:background="@android:color/white"
     tools:context=".settings.SettingsActivity">
 
-    <View
-        android:id="@+id/status_bar_overlay3"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:background="#50000000"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHeight_percent="0.025"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
 
     <ScrollView
         android:layout_width="0dp"
@@ -26,8 +16,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/status_bar_overlay3" >
-
+        app:layout_constraintTop_toTopOf="parent">
 
 
         <LinearLayout
@@ -232,7 +221,7 @@
                 android:textColor="@color/black"
                 android:textSize="18sp"
                 app:backgroundTint="#DFF1F1"
-                app:cornerRadius="8dp"/> <!-- Sử dụng màu chủ đạo của Material Design -->
+                app:cornerRadius="8dp" /> <!-- Sử dụng màu chủ đạo của Material Design -->
 
 
             <!-- Danh sách ứng dụng đã chọn -->
@@ -279,18 +268,18 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center"
                 android:layout_marginTop="16dp"
                 android:layout_marginBottom="16dp"
-                android:baselineAligned="false"> <!-- Thêm baselineAligned để loại bỏ cảnh báo -->
+                android:baselineAligned="false"
+                android:gravity="center"
+                android:orientation="horizontal"> <!-- Thêm baselineAligned để loại bỏ cảnh báo -->
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:orientation="vertical"
                     android:gravity="center_horizontal"
+                    android:orientation="vertical"
                     android:padding="8dp">
 
                     <ImageButton
@@ -300,61 +289,66 @@
                         android:background="@android:color/transparent"
                         android:contentDescription="Mở Danh bạ"
                         android:scaleType="fitCenter" />
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
                         android:text="Danh bạ"
                         android:textColor="@android:color/black"
-                        android:textSize="16sp"
-                        android:layout_marginTop="8dp" />
+                        android:textSize="16sp" />
                 </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:orientation="vertical"
                     android:gravity="center_horizontal"
+                    android:orientation="vertical"
                     android:padding="8dp">
+
                     <ImageButton
                         android:id="@+id/font_settings_button"
                         android:layout_width="100dp"
                         android:layout_height="100dp"
-                        android:src="@drawable/ic_font_settings"
-                        android:scaleType="fitCenter"
                         android:background="@android:color/transparent"
-                        android:contentDescription="Cài đặt Font chữ"/>
+                        android:contentDescription="Cài đặt Font chữ"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/ic_font_settings" />
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
                         android:text="Cỡ chữ"
                         android:textColor="@android:color/black"
-                        android:textSize="16sp"
-                        android:layout_marginTop="8dp" />
+                        android:textSize="16sp" />
                 </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:orientation="vertical"
                     android:gravity="center_horizontal"
+                    android:orientation="vertical"
                     android:padding="8dp">
+
                     <ImageButton
                         android:id="@+id/set_default_launcher_button"
                         android:layout_width="100dp"
                         android:layout_height="100dp"
-                        android:src="@drawable/ic_home_settings"
-                        android:scaleType="fitCenter"
                         android:background="@android:color/transparent"
-                        android:contentDescription="Đặt làm Launcher mặc định"/>
+                        android:contentDescription="Đặt làm Launcher mặc định"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/ic_home_settings" />
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
                         android:text="Đặt mặc định"
                         android:textColor="@android:color/black"
-                        android:textSize="16sp"
-                        android:layout_marginTop="8dp" />
+                        android:textSize="16sp" />
                 </LinearLayout>
             </LinearLayout>
 
