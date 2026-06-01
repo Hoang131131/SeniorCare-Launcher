@@ -173,16 +173,10 @@ public class MainActivity extends AppCompatActivity {
             registerReceiver(settingsUpdateReceiver, settingsFilter);
         }
 
-        // XỬ LÝ NÚT ÂM LƯỢNG: Chỉ hiển thị thanh điều khiển âm lượng hệ thống
+        // XỬ LÝ NÚT ÂM LƯỢNG
         volumeButton.setOnClickListener(v -> {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) { // Android P (API 28) trở lên
-                // Sử dụng Settings.Panel.ACTION_VOLUME để hiển thị panel điều khiển âm lượng
-                Intent intent = new Intent(Settings.Panel.ACTION_VOLUME);
-                startActivity(intent);
-            } else {
-                // Đối với các phiên bản cũ hơn Android P, hiển thị bảng điều khiển âm lượng pop-up
-                audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_SAME, AudioManager.FLAG_SHOW_UI);
-            }
+            // Tăng giảm âm lượng lên 1 nấc và hiển thị thanh điều khiển UI
+            audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_SAME, AudioManager.FLAG_SHOW_UI);
         });
 
         appList = new ArrayList<>();
