@@ -2,6 +2,11 @@
     <!-- Base application theme. -->
     <style name="Base.Theme.SeniorCare" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your dark theme here. -->
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor" tools:targetApi="l">@color/dark_white</item>
+        <!-- Thêm dòng này để đặt màu icon và chữ trên Status Bar thành màu tối nếu nền sáng -->
+        <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
+        <!-- Customize your theme here. -->
         <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
     </style>
 </resources>

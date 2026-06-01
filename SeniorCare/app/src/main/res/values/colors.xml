@@ -9,6 +9,7 @@
     <color name="white">#FFFFFFFF</color>
     <color name="red">#FFFF0000</color>
     <color name="zalo_blue">#0384FC</color>
+    <color name="dark_white">#F5F5F5</color>
 
     <color name="material_dynamic_primary40">#388E3C</color>
     <color name="material_dynamic_primary50">#4CAF50</color>
