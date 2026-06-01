@@ -3,7 +3,7 @@ package ntu.edu.seniorcare;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
-import android.content.ActivityNotFoundException; // Thêm import này
+import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -16,9 +16,11 @@ import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings; // Thêm import này
+import android.provider.Settings;
+import android.os.BatteryManager;
 import android.util.Log;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -73,7 +75,9 @@ public class MainActivity extends AppCompatActivity {
     private TextView timeTextView;
     private TextView dateTextView;
     private TextView weatherTextView;
-    private TextView temperateTextView; // THÊM DÒNG NÀY ĐỂ KẾT NỐI VỚI temperate_text_view
+    private TextView temperateTextView;
+    private TextView batteryInfoTextView;
+    private ImageView batteryIconImageView;
     private AudioManager audioManager;
 
     private RecyclerView appGridRecyclerView;
@@ -97,6 +101,17 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    // BroadcastReceiver mới để cập nhật trạng thái pin
+    private BroadcastReceiver batteryReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (Intent.ACTION_BATTERY_CHANGED.equals(intent.getAction())) {
+                updateBatteryInfo(intent);
+            }
+        }
+    };
+
+
     private BroadcastReceiver settingsUpdateReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -116,9 +131,11 @@ public class MainActivity extends AppCompatActivity {
         timeTextView = findViewById(R.id.time_text_view);
         dateTextView = findViewById(R.id.date_text_view);
         weatherTextView = findViewById(R.id.weather_text_view);
-        temperateTextView = findViewById(R.id.temperate_text_view); // KHỞI TẠO temperateTextView
-        ImageButton volumeUpButton = findViewById(R.id.btn_volume);
-        ImageButton volumeDownButton = findViewById(R.id.btn_volume);
+        temperateTextView = findViewById(R.id.temperate_text_view);
+        batteryInfoTextView = findViewById(R.id.battery_info_text_view);
+        batteryIconImageView = findViewById(R.id.battery_icon_image_view);
+
+        ImageButton volumeButton = findViewById(R.id.btn_volume);
         appGridRecyclerView = findViewById(R.id.app_grid_recycler_view);
 
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
@@ -139,6 +156,15 @@ public class MainActivity extends AppCompatActivity {
             registerReceiver(timeReceiver, timeFilter);
         }
 
+        // Đăng ký Battery Receiver
+        @SuppressLint("UnspecifiedRegisterReceiverFlag")
+        IntentFilter batteryFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(batteryReceiver, batteryFilter, Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            registerReceiver(batteryReceiver, batteryFilter);
+        }
+
         @SuppressLint("UnspecifiedRegisterReceiverFlag")
         IntentFilter settingsFilter = new IntentFilter(SettingsActivity.ACTION_UPDATE_LAUNCHER);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -147,8 +173,17 @@ public class MainActivity extends AppCompatActivity {
             registerReceiver(settingsUpdateReceiver, settingsFilter);
         }
 
-        volumeUpButton.setOnClickListener(v -> adjustVolume(true));
-        volumeDownButton.setOnClickListener(v -> adjustVolume(false));
+        // XỬ LÝ NÚT ÂM LƯỢNG: Chỉ hiển thị thanh điều khiển âm lượng hệ thống
+        volumeButton.setOnClickListener(v -> {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) { // Android P (API 28) trở lên
+                // Sử dụng Settings.Panel.ACTION_VOLUME để hiển thị panel điều khiển âm lượng
+                Intent intent = new Intent(Settings.Panel.ACTION_VOLUME);
+                startActivity(intent);
+            } else {
+                // Đối với các phiên bản cũ hơn Android P, hiển thị bảng điều khiển âm lượng pop-up
+                audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_SAME, AudioManager.FLAG_SHOW_UI);
+            }
+        });
 
         appList = new ArrayList<>();
         loadAndDisplayApps();
@@ -173,6 +208,37 @@ public class MainActivity extends AppCompatActivity {
         unregisterReceiver(timeReceiver);
         unregisterReceiver(settingsUpdateReceiver);
         weatherExecutorService.shutdownNow();
+    }
+
+
+    private void updateBatteryInfo(Intent batteryStatus) {
+        int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+        int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+        int batteryPct = (int) (level * 100 / (float) scale);
+
+        int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
+        boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
+                status == BatteryManager.BATTERY_STATUS_FULL;
+
+        int iconResId;
+        if (isCharging) {
+            iconResId = R.drawable.ic_battery_charging; // Icon đang sạc
+        } else if (batteryPct >= 85) {
+            iconResId = R.drawable.ic_battery_full;
+        } else if (batteryPct >= 60) {
+            iconResId = R.drawable.ic_battery_80;
+        } else if (batteryPct >= 40) {
+            iconResId = R.drawable.ic_battery_60;
+        } else if (batteryPct >= 20) {
+            iconResId = R.drawable.ic_battery_40;
+        } else {
+            iconResId = R.drawable.ic_battery_low; // Icon pin yếu
+        }
+
+        runOnUiThread(() -> {
+            batteryInfoTextView.setText(String.format(Locale.getDefault(), "%d%%", batteryPct));
+            batteryIconImageView.setImageResource(iconResId);
+        });
     }
 
     private void loadAndDisplayApps() {
@@ -295,20 +361,6 @@ public class MainActivity extends AppCompatActivity {
             return str;
         }
         return str.substring(0, 1).toUpperCase() + str.substring(1);
-    }
-
-    private void adjustVolume(boolean increase) {
-        int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-        int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-        int volumeStep = (int) Math.ceil(maxVolume * 0.05);
-
-        int newVolume;
-        if (increase) {
-            newVolume = Math.min(currentVolume + volumeStep, maxVolume);
-        } else {
-            newVolume = Math.max(currentVolume - volumeStep, 0);
-        }
-        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newVolume, AudioManager.FLAG_SHOW_UI);
     }
 
     // --- Xử lý quyền vị trí và thời tiết ---
