@@ -23,6 +23,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.location.LocationManager;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -87,6 +88,10 @@ public class MainActivity extends AppCompatActivity {
     private FusedLocationProviderClient fusedLocationClient;
     private OkHttpClient httpClient;
     private ExecutorService weatherExecutorService;
+
+    private long lastLocationServicePromptTime = 0;
+    private static final long LOCATION_PROMPT_INTERVAL = 5 * 60 * 1000; // 5 phút
+
 
     private BroadcastReceiver timeReceiver = new BroadcastReceiver() {
         @Override
@@ -365,8 +370,8 @@ public class MainActivity extends AppCompatActivity {
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
                     LOCATION_PERMISSION_REQUEST_CODE);
         } else {
-            // Quyền đã được cấp, lấy vị trí
-            getLocationAndFetchWeather();
+            // Quyền đã được cấp, kiểm tra dịch vụ vị trí trước khi lấy vị trí
+            checkLocationServiceAndFetchWeather();
         }
     }
 
@@ -375,14 +380,50 @@ public class MainActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Quyền vị trí được cấp
-                getLocationAndFetchWeather();
+                // Quyền vị trí được cấp, kiểm tra dịch vụ vị trí
+                checkLocationServiceAndFetchWeather();
             } else {
                 // Quyền vị trí bị từ chối
-                Toast.makeText(this, "Quyền truy cập vị trí bị từ chối. Không thể lấy thông tin thời tiết.", Toast.LENGTH_LONG).show();
                 weatherTextView.setText("Thời tiết: N/A");
-                temperateTextView.setText("N/A"); // ĐẶT LẠI temperateTextView KHI KHÔNG CÓ QUYỀN
+                temperateTextView.setText("N/A");
+                Toast.makeText(this, "Quyền truy cập vị trí bị từ chối. Không thể lấy thông tin thời tiết.", Toast.LENGTH_LONG).show();
             }
+        }
+    }
+
+    private void checkLocationServiceAndFetchWeather() {
+        LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        boolean gps_enabled = false;
+        boolean network_enabled = false;
+
+        try {
+            gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        } catch (Exception ex) {
+            Log.e(TAG, "Lỗi kiểm tra GPS: " + ex.getMessage());
+        }
+
+        try {
+            network_enabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        } catch (Exception ex) {
+            Log.e(TAG, "Lỗi kiểm tra Network Location: " + ex.getMessage());
+        }
+
+        if (!gps_enabled && !network_enabled) {
+            // Dịch vụ vị trí bị tắt
+            Log.w(TAG, "Dịch vụ vị trí bị tắt. Không thể lấy thông tin thời tiết.");
+            weatherTextView.setText("Vị trí: Tắt"); // Thông báo rõ ràng hơn
+            temperateTextView.setText("N/A");
+
+            // Chỉ hiển thị Toast nếu đã đủ thời gian kể từ lần cuối thông báo
+            if (System.currentTimeMillis() - lastLocationServicePromptTime > LOCATION_PROMPT_INTERVAL) {
+                runOnUiThread(() -> {
+                    Toast.makeText(this, "Vui lòng bật dịch vụ vị trí để hiển thị thời tiết.", Toast.LENGTH_LONG).show();
+                });
+                lastLocationServicePromptTime = System.currentTimeMillis();
+            }
+        } else {
+            // Dịch vụ vị trí đang bật, tiến hành lấy vị trí
+            getLocationAndFetchWeather();
         }
     }
 
@@ -397,14 +438,12 @@ public class MainActivity extends AppCompatActivity {
                         Log.w(TAG, "Không thể lấy vị trí cuối cùng.");
                         weatherTextView.setText("Thời tiết: N/A");
                         temperateTextView.setText("N/A"); // ĐẶT LẠI temperateTextView
-                        Toast.makeText(this, "Không thể xác định vị trí hiện tại.", Toast.LENGTH_SHORT).show();
                     }
                 })
                 .addOnFailureListener(this, e -> {
                     Log.e(TAG, "Lỗi khi lấy vị trí: " + e.getMessage());
                     weatherTextView.setText("Thời tiết: N/A");
                     temperateTextView.setText("N/A"); // ĐẶT LẠI temperateTextView
-                    Toast.makeText(this, "Lỗi khi lấy vị trí.", Toast.LENGTH_SHORT).show();
                 });
     }
 
