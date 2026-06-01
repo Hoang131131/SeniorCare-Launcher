@@ -1,12 +1,15 @@
-package ntu.edu.seniorcare.sms; // Đảm bảo package đúng
+package ntu.edu.seniorcare.sms;
 
+import android.util.Log; // Giữ lại Log cho lỗi (E)
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
 public class SmsInfo {
-    private String sender;      // Tên người gửi (hoặc số nếu không có trong danh bạ)
-    private String address;     // Số điện thoại thực tế
+    private static final String INFO_TAG = "SmsInfo"; // Giữ lại TAG cho các log lỗi
+
+    private String sender;
+    private String address;
     private String messageBody;
     private long timestamp;
 
@@ -15,6 +18,7 @@ public class SmsInfo {
         this.address = address;
         this.messageBody = messageBody;
         this.timestamp = timestamp;
+        // Log.d(INFO_TAG, "SmsInfo created: Sender='" + sender + "', Address='" + address + "', Body (truncated): '" + (messageBody != null && messageBody.length() > 50 ? messageBody.substring(0, 50) + "..." : messageBody) + "', Timestamp: " + timestamp); // Xóa log này
     }
 
     public String getSender() {
@@ -34,8 +38,15 @@ public class SmsInfo {
     }
 
     public String getFormattedTimestamp() {
-        // Định dạng "10:30 AM - 15/05/2024"
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm - dd/MM/yyyy", Locale.getDefault());
-        return sdf.format(new Date(timestamp));
+        String formatted = null;
+        try {
+            formatted = sdf.format(new Date(timestamp));
+        } catch (Exception e) {
+            Log.e(INFO_TAG, "Error formatting timestamp " + timestamp + ": " + e.getMessage()); // Giữ lại log lỗi
+            formatted = "Lỗi thời gian";
+        }
+        // Log.d(INFO_TAG, "getFormattedTimestamp for " + sender + " (raw: " + timestamp + "): " + formatted); // Xóa log này
+        return formatted;
     }
 }

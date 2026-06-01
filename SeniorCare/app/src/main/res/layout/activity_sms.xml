@@ -8,6 +8,7 @@
     android:background="@android:color/white"
     tools:context=".sms.SmsActivity">
 
+
     <TextView
         android:id="@+id/no_sms_text"
         android:layout_width="match_parent"
@@ -15,7 +16,7 @@
         android:gravity="center"
         android:text="Không có tin nhắn nào."
         android:textSize="18sp"
-        android:visibility="gone" /> <!-- Mặc định ẩn -->
+        android:visibility="gone" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/sms_recycler_view"
@@ -25,5 +26,6 @@
         android:clipToPadding="false"
         android:scrollbars="vertical"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
 
 </LinearLayout>
