@@ -20,6 +20,6 @@
     <!-- Phần pin đã sạc (dưới 20%) -->
     <path
         android:fillColor="#FF000000"
-        android:pathData="M3.5,6.5 H7 V17.5 H3.5 Z" />
+        android:pathData="M4.5,7.5 H7.3 V16.5 H4.5 Z" />
 
 </vector>
