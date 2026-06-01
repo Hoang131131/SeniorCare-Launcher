@@ -117,8 +117,8 @@ public class MainActivity extends AppCompatActivity {
         dateTextView = findViewById(R.id.date_text_view);
         weatherTextView = findViewById(R.id.weather_text_view);
         temperateTextView = findViewById(R.id.temperate_text_view); // KHỞI TẠO temperateTextView
-        ImageButton volumeUpButton = findViewById(R.id.volume_up_button);
-        ImageButton volumeDownButton = findViewById(R.id.volume_down_button);
+        ImageButton volumeUpButton = findViewById(R.id.btn_volume);
+        ImageButton volumeDownButton = findViewById(R.id.btn_volume);
         appGridRecyclerView = findViewById(R.id.app_grid_recycler_view);
 
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
