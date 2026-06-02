@@ -7,7 +7,7 @@
     android:focusable="true"
     android:gravity="center"
     android:orientation="vertical"
-    android:padding="8dp">
+    android:padding="16dp">
 
     <ImageView
         android:id="@+id/app_icon_image_view"
