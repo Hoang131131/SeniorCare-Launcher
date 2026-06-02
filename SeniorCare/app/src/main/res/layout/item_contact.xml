@@ -58,7 +58,7 @@
                     android:id="@+id/btn_call_phone"
                     android:layout_width="55dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="5dp"
+                    android:layout_marginEnd="0dp"
                     android:backgroundTint="#4CAF50"
                     android:paddingHorizontal="24dp"
                     android:paddingVertical="12dp"
@@ -69,19 +69,8 @@
                     app:iconSize="30dp"
                     app:iconTint="@android:color/white" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_call_zalo"
-                    android:layout_width="55dp"
-                    android:layout_height="wrap_content"
-                    android:backgroundTint="@color/zalo_blue"
-                    android:paddingHorizontal="24dp"
-                    android:paddingVertical="12dp"
-                    android:textStyle="bold"
-                    app:cornerRadius="8dp"
-                    app:icon="@drawable/ic_zalo_call"
-                    app:iconGravity="textStart"
-                    app:iconSize="30dp"
-                    app:iconTint="@android:color/white" />
+                <!-- ĐÃ BỎ NÚT btn_call_zalo Ở ĐÂY -->
+
             </LinearLayout>
         </LinearLayout>
 

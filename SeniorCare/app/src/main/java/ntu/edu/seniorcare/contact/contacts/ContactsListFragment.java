@@ -44,7 +44,7 @@ public class ContactsListFragment extends Fragment implements PermissionAwareFra
     private ExecutorService executorService;
 
     public ContactsListFragment() {
-        // Required empty public constructor
+        // Required empty public constr uctor
     }
 
     @Override
