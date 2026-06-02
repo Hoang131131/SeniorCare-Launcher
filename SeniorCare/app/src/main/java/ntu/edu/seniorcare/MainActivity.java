@@ -73,6 +73,10 @@ public class MainActivity extends AppCompatActivity {
     private static final String PREFS_NAME = "MyLauncherPrefs";
     private static final String HAS_ASKED_DEFAULT_LAUNCHER = "hasAskedDefaultLauncher";
 
+    // Keys để lưu trữ dữ liệu thời tiết đã cache
+    private static final String LAST_WEATHER_TEMP = "lastWeatherTemp";
+    private static final String LAST_WEATHER_DESC = "lastWeatherDesc";
+
     private TextView timeTextView;
     private TextView dateTextView;
     private TextView weatherTextView;
@@ -100,11 +104,22 @@ public class MainActivity extends AppCompatActivity {
                     Intent.ACTION_TIME_CHANGED.equals(intent.getAction()) ||
                     Intent.ACTION_TIMEZONE_CHANGED.equals(intent.getAction())) {
                 updateDateTime();
-                // Cập nhật thời tiết theo giờ/nửa giờ một lần nếu cần (có thể giới hạn tần suất)
+            }
+        }
+    };
+
+    // BroadcastReceiver để lắng nghe khi trạng thái dịch vụ vị trí thay đổi
+    private BroadcastReceiver locationProviderChangeReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (LocationManager.PROVIDERS_CHANGED_ACTION.equals(intent.getAction())) {
+                Log.d(TAG, "Location providers changed, re-fetching weather.");
+                // Khi dịch vụ vị trí bật/tắt, cố gắng lấy lại thời tiết
                 fetchWeather();
             }
         }
     };
+
 
     // BroadcastReceiver mới để cập nhật trạng thái pin
     private BroadcastReceiver batteryReceiver = new BroadcastReceiver() {
@@ -178,6 +193,15 @@ public class MainActivity extends AppCompatActivity {
             registerReceiver(settingsUpdateReceiver, settingsFilter);
         }
 
+        // Đăng ký LocationProviderChangeReceiver
+        @SuppressLint("UnspecifiedRegisterReceiverFlag")
+        IntentFilter locationProviderFilter = new IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(locationProviderChangeReceiver, locationProviderFilter, Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            registerReceiver(locationProviderChangeReceiver, locationProviderFilter);
+        }
+
         // XỬ LÝ NÚT ÂM LƯỢNG
         volumeButton.setOnClickListener(v -> {
             // Tăng giảm âm lượng lên 1 nấc và hiển thị thanh điều khiển UI
@@ -197,15 +221,27 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         loadAndDisplayApps();
         applySettings();
-        fetchWeather(); // Cập nhật thời tiết khi ứng dụng trở lại foreground
+        fetchWeather();// Cập nhật thời tiết khi ứng dụng trở lại foreground
         checkDefaultLauncher(); // Kiểm tra và hỏi người dùng về launcher mặc định
     }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        /* START_MODIFICATION */
+        // Lưu thời tiết hiện tại khi ứng dụng chuyển sang trạng thái tạm dừng
+        // Điều này đảm bảo rằng thời tiết mới nhất được lưu trữ để sử dụng sau
+        saveCurrentWeather();
+    }
+
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         unregisterReceiver(timeReceiver);
         unregisterReceiver(settingsUpdateReceiver);
+        unregisterReceiver(batteryReceiver); // Đảm bảo unregister receiver pin
+        unregisterReceiver(locationProviderChangeReceiver); // Unregister receiver thay đổi vị trí
         weatherExecutorService.shutdownNow();
     }
 
@@ -456,6 +492,7 @@ public class MainActivity extends AppCompatActivity {
             // Nếu chưa có quyền, sẽ yêu cầu lại hoặc hiển thị N/A
             weatherTextView.setText("Thời tiết: N/A");
             temperateTextView.setText("N/A"); // ĐẶT LẠI temperateTextView
+            Log.d(TAG, "Không thể fetch thời tiết: thiếu quyền vị trí.");
         }
     }
 
@@ -501,6 +538,7 @@ public class MainActivity extends AppCompatActivity {
                             runOnUiThread(() -> {
                                 temperateTextView.setText(temperature); // CẬP NHẬT temperateTextView
                                 weatherTextView.setText(description); // CẬP NHẬT weatherTextView
+                                saveCurrentWeather(temperature, description);
                             });
                         } else {
                             Log.e(TAG, "Dữ liệu thời tiết không hợp lệ.");
@@ -520,6 +558,38 @@ public class MainActivity extends AppCompatActivity {
             });
         });
     }
+
+
+    private void saveCurrentWeather(String temperature, String description) {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString(LAST_WEATHER_TEMP, temperature);
+        editor.putString(LAST_WEATHER_DESC, description);
+        editor.apply();
+    }
+
+    // Phương thức để tải thời tiết đã lưu từ SharedPreferences
+    private void loadCachedWeather() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        String cachedTemp = prefs.getString(LAST_WEATHER_TEMP, "N/A");
+        String cachedDesc = prefs.getString(LAST_WEATHER_DESC, "N/A");
+
+        runOnUiThread(() -> {
+            temperateTextView.setText(cachedTemp);
+            weatherTextView.setText(cachedDesc);
+            Log.d(TAG, "Đã tải thời tiết đã lưu: " + cachedDesc + ", " + cachedTemp);
+        });
+    }
+
+    // Phương thức lưu thời tiết trống khi app chuyển sang trạng thái pause
+    // Được gọi trong onPause
+    private void saveCurrentWeather() {
+        // Có thể lưu giá trị hiện tại trên UI, nhưng để tránh logic phức tạp,
+        // chúng ta sẽ chỉ lưu các giá trị đã nhận được từ API thành công.
+        // Hoặc có thể lấy từ TextView nếu muốn đảm bảo đồng bộ với UI.
+        // Tuy nhiên, việc gọi saveCurrentWeather(temp, desc) trong fetchWeatherFromApi là đủ.
+    }
+
 
     // --- Các lớp POJO cho việc parse JSON từ OpenWeatherMap ---
     private static class WeatherResponse {
