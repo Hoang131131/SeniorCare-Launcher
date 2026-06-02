@@ -181,7 +181,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="24dp"
                             android:padding="8dp"
-                            android:text="2 Cột"
+                            android:text="2"
                             android:textColor="@android:color/black"
                             android:textSize="18sp" />
 
@@ -191,7 +191,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="24dp"
                             android:padding="8dp"
-                            android:text="3 Cột"
+                            android:text="3"
                             android:textColor="@android:color/black"
                             android:textSize="18sp" />
 
@@ -200,7 +200,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:padding="8dp"
-                            android:text="4 Cột"
+                            android:text="4"
                             android:textColor="@android:color/black"
                             android:textSize="18sp" />
                     </RadioGroup>
