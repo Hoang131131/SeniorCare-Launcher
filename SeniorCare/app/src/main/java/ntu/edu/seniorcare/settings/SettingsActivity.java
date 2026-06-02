@@ -297,13 +297,13 @@ public class SettingsActivity extends AppCompatActivity {
 
             if (targetNumColumns == 2) {
                 numColumnsRadioGroup.check(R.id.radio_2_columns);
-                Toast.makeText(this, "Kích thước icon/chữ quá lớn, tự động điều chỉnh sang 2 cột.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Tự động điều chỉnh sang 2 cột.", Toast.LENGTH_SHORT).show();
             } else if (targetNumColumns == 3) {
                 numColumnsRadioGroup.check(R.id.radio_3_columns);
-                Toast.makeText(this, "Kích thước icon/chữ lớn, tự động điều chỉnh sang 3 cột.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Tự động điều chỉnh sang 3 cột.", Toast.LENGTH_SHORT).show();
             } else if (targetNumColumns == 4) {
                 numColumnsRadioGroup.check(R.id.radio_4_columns);
-                Toast.makeText(this, "Số cột tự động điều chỉnh sang 4 cột.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Tự động điều chỉnh sang 4 cột.", Toast.LENGTH_SHORT).show();
             }
             sendUpdateBroadcast();
         }
