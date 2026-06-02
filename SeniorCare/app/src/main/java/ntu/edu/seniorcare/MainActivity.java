@@ -94,8 +94,6 @@ public class MainActivity extends AppCompatActivity {
     private ExecutorService weatherExecutorService;
 
     private long lastLocationServicePromptTime = 0;
-    private static final long LOCATION_PROMPT_INTERVAL = 5 * 60 * 1000; // 5 phút
-
 
     private BroadcastReceiver timeReceiver = new BroadcastReceiver() {
         @Override
@@ -104,18 +102,6 @@ public class MainActivity extends AppCompatActivity {
                     Intent.ACTION_TIME_CHANGED.equals(intent.getAction()) ||
                     Intent.ACTION_TIMEZONE_CHANGED.equals(intent.getAction())) {
                 updateDateTime();
-            }
-        }
-    };
-
-    // BroadcastReceiver để lắng nghe khi trạng thái dịch vụ vị trí thay đổi
-    private BroadcastReceiver locationProviderChangeReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (LocationManager.PROVIDERS_CHANGED_ACTION.equals(intent.getAction())) {
-                Log.d(TAG, "Location providers changed, re-fetching weather.");
-                // Khi dịch vụ vị trí bật/tắt, cố gắng lấy lại thời tiết
-                fetchWeather();
             }
         }
     };
@@ -163,6 +149,8 @@ public class MainActivity extends AppCompatActivity {
         httpClient = new OkHttpClient();
         weatherExecutorService = Executors.newSingleThreadExecutor();
 
+        lastLocationServicePromptTime = 0;
+
         updateDateTime();
 
         @SuppressLint("UnspecifiedRegisterReceiverFlag")
@@ -193,14 +181,6 @@ public class MainActivity extends AppCompatActivity {
             registerReceiver(settingsUpdateReceiver, settingsFilter);
         }
 
-        // Đăng ký LocationProviderChangeReceiver
-        @SuppressLint("UnspecifiedRegisterReceiverFlag")
-        IntentFilter locationProviderFilter = new IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(locationProviderChangeReceiver, locationProviderFilter, Context.RECEIVER_NOT_EXPORTED);
-        } else {
-            registerReceiver(locationProviderChangeReceiver, locationProviderFilter);
-        }
 
         // XỬ LÝ NÚT ÂM LƯỢNG
         volumeButton.setOnClickListener(v -> {
@@ -225,15 +205,6 @@ public class MainActivity extends AppCompatActivity {
         checkDefaultLauncher(); // Kiểm tra và hỏi người dùng về launcher mặc định
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        /* START_MODIFICATION */
-        // Lưu thời tiết hiện tại khi ứng dụng chuyển sang trạng thái tạm dừng
-        // Điều này đảm bảo rằng thời tiết mới nhất được lưu trữ để sử dụng sau
-        saveCurrentWeather();
-    }
-
 
     @Override
     protected void onDestroy() {
@@ -241,7 +212,6 @@ public class MainActivity extends AppCompatActivity {
         unregisterReceiver(timeReceiver);
         unregisterReceiver(settingsUpdateReceiver);
         unregisterReceiver(batteryReceiver); // Đảm bảo unregister receiver pin
-        unregisterReceiver(locationProviderChangeReceiver); // Unregister receiver thay đổi vị trí
         weatherExecutorService.shutdownNow();
     }
 
@@ -450,12 +420,14 @@ public class MainActivity extends AppCompatActivity {
             weatherTextView.setText("Vị trí: Tắt"); // Thông báo rõ ràng hơn
             temperateTextView.setText("N/A");
 
-            // Chỉ hiển thị Toast nếu đã đủ thời gian kể từ lần cuối thông báo
-            if (System.currentTimeMillis() - lastLocationServicePromptTime > LOCATION_PROMPT_INTERVAL) {
+            // Chỉ hiển thị Toast một lần cho mỗi lần ứng dụng được mở (hoặc khi trạng thái vị trí thay đổi)
+            // và chỉ khi dịch vụ vị trí bị tắt.
+            // Biến lastLocationServicePromptTime sẽ được dùng như một cờ (flag) để đánh dấu đã thông báo chưa.
+            if (lastLocationServicePromptTime == 0) { // Chỉ thông báo nếu chưa từng thông báo kể từ khi mở ứng dụng
                 runOnUiThread(() -> {
                     Toast.makeText(this, "Vui lòng bật dịch vụ vị trí để hiển thị thời tiết.", Toast.LENGTH_LONG).show();
                 });
-                lastLocationServicePromptTime = System.currentTimeMillis();
+                lastLocationServicePromptTime = 1; // Đánh dấu là đã thông báo
             }
         } else {
             // Dịch vụ vị trí đang bật, tiến hành lấy vị trí
@@ -581,14 +553,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    // Phương thức lưu thời tiết trống khi app chuyển sang trạng thái pause
-    // Được gọi trong onPause
-    private void saveCurrentWeather() {
-        // Có thể lưu giá trị hiện tại trên UI, nhưng để tránh logic phức tạp,
-        // chúng ta sẽ chỉ lưu các giá trị đã nhận được từ API thành công.
-        // Hoặc có thể lấy từ TextView nếu muốn đảm bảo đồng bộ với UI.
-        // Tuy nhiên, việc gọi saveCurrentWeather(temp, desc) trong fetchWeatherFromApi là đủ.
-    }
 
 
     // --- Các lớp POJO cho việc parse JSON từ OpenWeatherMap ---
