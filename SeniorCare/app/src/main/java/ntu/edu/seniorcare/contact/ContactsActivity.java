@@ -104,8 +104,6 @@ public class ContactsActivity extends AppCompatActivity {
                 }
             }
             if (allGranted) {
-                Toast.makeText(this, "Tất cả quyền đã được cấp.", Toast.LENGTH_SHORT).show();
-                // Quyền đã được cấp, tải dữ liệu trong Fragment
                 loadDataInCurrentFragment();
             } else {
                 Toast.makeText(this, "Một số quyền cần thiết đã bị từ chối. Một số chức năng có thể không hoạt động.", Toast.LENGTH_LONG).show();
