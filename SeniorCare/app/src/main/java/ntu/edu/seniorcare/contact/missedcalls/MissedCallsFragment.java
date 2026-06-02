@@ -11,7 +11,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
+import android.widget.TextView; // Import TextView
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -24,7 +24,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -34,19 +33,20 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import ntu.edu.seniorcare.R;
+import ntu.edu.seniorcare.contact.PermissionAwareFragment; // Import interface
 
-public class MissedCallsFragment extends Fragment {
+public class MissedCallsFragment extends Fragment implements PermissionAwareFragment {
 
     private static final String TAG = "MissedCallsFragment";
-    private static final int PERMISSIONS_REQUEST_FOR_MISSED_CALLS = 300; // Request code riêng cho Fragment này, nếu cần
+    // Không cần PERMISSIONS_REQUEST_FOR_MISSED_CALLS ở đây nữa
 
     private RecyclerView missedCallsRecyclerView;
-    private TextView noMissedCallsTextView;
+    private TextView noMissedCallsTextView; // Thêm TextView
     private MissedCallAdapter missedCallAdapter;
-    private List<MissedCallGroupItem> groupedMissedCallItems; // Danh sách chứa cả header và item cuộc gọi
+    private List<MissedCallGroupItem> groupedMissedCallItems;
 
-    private Map<String, String> contactsMap; // key: normalized number, value: contact name
-    private ExecutorService executorService; // Để thực hiện các tác vụ đọc dữ liệu trên background thread
+    private Map<String, String> contactsMap;
+    private ExecutorService executorService;
 
     public MissedCallsFragment() {
         // Required empty public constructor
@@ -55,7 +55,7 @@ public class MissedCallsFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        executorService = Executors.newSingleThreadExecutor(); // Khởi tạo ExecutorService
+        executorService = Executors.newSingleThreadExecutor();
         contactsMap = new HashMap<>();
         groupedMissedCallItems = new ArrayList<>();
     }
@@ -66,11 +66,29 @@ public class MissedCallsFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_missed_calls, container, false);
 
         missedCallsRecyclerView = view.findViewById(R.id.missed_calls_recycler_view);
-        noMissedCallsTextView = view.findViewById(R.id.no_missed_calls_text);
-        missedCallsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        noMissedCallsTextView = view.findViewById(R.id.no_missed_calls_text); // Gán TextView
 
-        missedCallAdapter = new MissedCallAdapter(getContext(), groupedMissedCallItems);
-        missedCallsRecyclerView.setAdapter(missedCallAdapter);
+        if (missedCallsRecyclerView == null) {
+            Log.e(TAG, "missedCallsRecyclerView is null! Check fragment_missed_calls.xml layout file for id @+id/missed_calls_recycler_view.");
+        }
+        if (noMissedCallsTextView == null) {
+            Log.e(TAG, "noMissedCallsTextView is null! Check fragment_missed_calls.xml layout file for id @+id/no_missed_calls_text.");
+        }
+
+        if (missedCallsRecyclerView != null) {
+            missedCallsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+            missedCallAdapter = new MissedCallAdapter(getContext(), groupedMissedCallItems);
+            missedCallsRecyclerView.setAdapter(missedCallAdapter);
+        }
+
+        // Đặt trạng thái ban đầu: chờ hoặc chưa có quyền
+        if (noMissedCallsTextView != null) {
+            noMissedCallsTextView.setText("Đang chờ cấp quyền để hiển thị cuộc gọi nhỡ...");
+            noMissedCallsTextView.setVisibility(View.VISIBLE);
+        }
+        if (missedCallsRecyclerView != null) {
+            missedCallsRecyclerView.setVisibility(View.GONE);
+        }
 
         return view;
     }
@@ -78,62 +96,87 @@ public class MissedCallsFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        // Kiểm tra quyền và tải dữ liệu mỗi khi Fragment resume
-        checkPermissionsAndLoadAllData();
+        // Không tự động tải ở đây, Activity sẽ gọi onPermissionsGranted/Denied
+        // Nếu Activity đã có quyền, nó sẽ gọi loadDataInCurrentFragment() trong onResume của nó.
+        // Tuy nhiên, nếu Fragment này đang được hiển thị khi Activity resume, chúng ta cần kích hoạt lại nó.
+        if (getActivity() instanceof ntu.edu.seniorcare.contact.ContactsActivity) {
+            ((ntu.edu.seniorcare.contact.ContactsActivity) getActivity()).loadDataInCurrentFragment();
+        }
     }
 
-    private void checkPermissionsAndLoadAllData() {
-        boolean hasReadContactsPermission = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED;
-        boolean hasReadCallLogPermission = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED;
-        boolean hasCallPhonePermission = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED;
+    // Triển khai interface PermissionAwareFragment
+    @Override
+    public void onPermissionsGranted() {
+        Log.d(TAG, "onPermissionsGranted called. Loading missed calls...");
+        loadContactsAndMissedCalls();
+    }
 
-        // Nếu tất cả quyền cần thiết đã được cấp, thì tải dữ liệu
-        if (hasReadContactsPermission && hasReadCallLogPermission && hasCallPhonePermission) {
-            loadContactsAndMissedCalls();
-        } else {
-            // Nếu không, chỉ hiển thị thông báo "Không có cuộc gọi nhỡ" hoặc một thông báo khác
-            noMissedCallsTextView.setText("Ứng dụng cần quyền Truy cập Danh bạ và Nhật ký Cuộc gọi để hiển thị cuộc gọi nhỡ.");
+    @Override
+    public void onPermissionsDenied() {
+        Log.w(TAG, "onPermissionsDenied called. Displaying permission error.");
+        if (noMissedCallsTextView != null) {
+            noMissedCallsTextView.setText("Ứng dụng cần quyền Truy cập Danh bạ, Nhật ký Cuộc gọi và Gọi điện để hiển thị cuộc gọi nhỡ. Vui lòng cấp quyền trong cài đặt ứng dụng.");
             noMissedCallsTextView.setVisibility(View.VISIBLE);
+        }
+        if (missedCallsRecyclerView != null) {
             missedCallsRecyclerView.setVisibility(View.GONE);
-            groupedMissedCallItems.clear(); // Xóa dữ liệu cũ nếu không có quyền
+        }
+        groupedMissedCallItems.clear(); // Xóa dữ liệu cũ nếu không có quyền
+        if (missedCallAdapter != null) {
             missedCallAdapter.notifyDataSetChanged();
-            // Yêu cầu quyền nếu chưa được cấp (Chỉ yêu cầu nếu người dùng chưa từ chối vĩnh viễn)
-            // Tuy nhiên, việc yêu cầu quyền chính đã được thực hiện ở Activity, Fragment chỉ cần phản ứng.
-            // Có thể hiển thị một dialog nhỏ hướng dẫn người dùng vào cài đặt để cấp quyền.
         }
     }
 
     private void loadContactsAndMissedCalls() {
-        // Thực hiện việc tải dữ liệu trên một background thread
+        // Kiểm tra quyền một lần nữa trước khi thực hiện, để đảm bảo
+        boolean hasReadContactsPermission = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED;
+        boolean hasReadCallLogPermission = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED;
+        boolean hasCallPhonePermission = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED;
+
+        if (!(hasReadContactsPermission && hasReadCallLogPermission && hasCallPhonePermission)) {
+            Log.w(TAG, "Permissions not granted when loadContactsAndMissedCalls() was called. Skipping.");
+            onPermissionsDenied();
+            return;
+        }
+
         executorService.execute(() -> {
-            // Tải danh bạ
             contactsMap.clear();
             ContentResolver contentResolver = requireContext().getContentResolver();
-            String[] projection = new String[]{
+            String[] contactProjection = new String[]{
                     ContactsContract.CommonDataKinds.Phone.NUMBER,
                     ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME
             };
-            Cursor cursor = contentResolver.query(
-                    ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                    projection,
-                    null, null, null);
+            Cursor contactCursor = null;
+            try {
+                contactCursor = contentResolver.query(
+                        ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                        contactProjection,
+                        null, null, null);
 
-            if (cursor != null) {
-                int numberColumnIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
-                int nameColumnIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME);
-                if (numberColumnIndex != -1 && nameColumnIndex != -1) {
-                    while (cursor.moveToNext()) {
-                        String number = cursor.getString(numberColumnIndex);
-                        String name = cursor.getString(nameColumnIndex);
-                        if (number != null && name != null) {
-                            contactsMap.put(normalizePhoneNumber(number), name);
+                if (contactCursor != null) {
+                    int numberColumnIndex = contactCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
+                    int nameColumnIndex = contactCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME);
+                    if (numberColumnIndex != -1 && nameColumnIndex != -1) {
+                        while (contactCursor.moveToNext()) {
+                            String number = contactCursor.getString(numberColumnIndex);
+                            String name = contactCursor.getString(nameColumnIndex);
+                            if (number != null && name != null) {
+                                contactsMap.put(normalizePhoneNumber(number), name);
+                            }
                         }
                     }
                 }
-                cursor.close();
+            } catch (SecurityException e) {
+                Log.e(TAG, "SecurityException when reading contacts in MissedCallsFragment: " + e.getMessage());
+                requireActivity().runOnUiThread(() ->
+                        Toast.makeText(getContext(), "Lỗi quyền khi đọc danh bạ trong cuộc gọi nhỡ.", Toast.LENGTH_LONG).show());
+            } finally {
+                if (contactCursor != null) {
+                    contactCursor.close();
+                }
             }
 
-            // Tải cuộc gọi nhỡ và nhóm theo ngày
+
             List<MissedCallInfo> rawMissedCalls = new ArrayList<>();
             ContentResolver cr = requireContext().getContentResolver();
             String selection = CallLog.Calls.TYPE + " = " + CallLog.Calls.MISSED_TYPE;
@@ -146,7 +189,13 @@ public class MissedCallsFragment extends Fragment {
                 if (callLogCursor != null && callLogCursor.moveToFirst()) {
                     int numberColumn = callLogCursor.getColumnIndex(CallLog.Calls.NUMBER);
                     int dateColumn = callLogCursor.getColumnIndex(CallLog.Calls.DATE);
-                    int cachedNameColumn = callLogCursor.getColumnIndex(CallLog.Calls.CACHED_NAME); // Lấy tên đã cache
+                    int cachedNameColumn = callLogCursor.getColumnIndex(CallLog.Calls.CACHED_NAME);
+
+                    if (numberColumn == -1 || dateColumn == -1 || cachedNameColumn == -1) {
+                        Log.e(TAG, "One or more CallLog columns not found. Check CallLog.Calls constants.");
+                        requireActivity().runOnUiThread(() -> Toast.makeText(getContext(), "Lỗi: Không tìm thấy cột dữ liệu nhật ký cuộc gọi.", Toast.LENGTH_LONG).show());
+                        return;
+                    }
 
                     do {
                         String number = callLogCursor.getString(numberColumn);
@@ -155,11 +204,10 @@ public class MissedCallsFragment extends Fragment {
 
                         String normalizedNumber = normalizePhoneNumber(number);
 
-                        // Chỉ thêm vào danh sách nếu số này có trong danh bạ đã tải hoặc có tên cached
                         if (contactsMap.containsKey(normalizedNumber) || (cachedName != null && !cachedName.isEmpty())) {
                             String nameToDisplay = contactsMap.getOrDefault(normalizedNumber, cachedName);
                             if (nameToDisplay == null || nameToDisplay.isEmpty()) {
-                                nameToDisplay = number; // Fallback nếu không có tên
+                                nameToDisplay = number;
                             }
                             rawMissedCalls.add(new MissedCallInfo(nameToDisplay, number, callDate));
                         }
@@ -167,28 +215,29 @@ public class MissedCallsFragment extends Fragment {
                 }
             } catch (SecurityException e) {
                 Log.e(TAG, "Lỗi quyền khi đọc nhật ký cuộc gọi: " + e.getMessage());
-                // Xử lý lỗi trên UI thread
                 requireActivity().runOnUiThread(() ->
                         Toast.makeText(getContext(), "Quyền đọc nhật ký cuộc gọi bị từ chối.", Toast.LENGTH_LONG).show());
+                requireActivity().runOnUiThread(this::onPermissionsDenied);
             } finally {
                 if (callLogCursor != null) {
                     callLogCursor.close();
                 }
             }
 
-            // Nhóm và cập nhật UI trên Main Thread
             requireActivity().runOnUiThread(() -> {
                 groupedMissedCallItems.clear();
-                if (rawMissedCalls.isEmpty()) {
-                    noMissedCallsTextView.setText("Không có cuộc gọi nhỡ nào từ danh bạ.");
-                    noMissedCallsTextView.setVisibility(View.VISIBLE);
-                    missedCallsRecyclerView.setVisibility(View.GONE);
-                } else {
+                if (!rawMissedCalls.isEmpty()) {
                     noMissedCallsTextView.setVisibility(View.GONE);
                     missedCallsRecyclerView.setVisibility(View.VISIBLE);
                     groupMissedCallsByDate(rawMissedCalls);
+                } else {
+                    noMissedCallsTextView.setText("Không có cuộc gọi nhỡ nào để hiển thị hoặc quyền truy cập bị từ chối.");
+                    noMissedCallsTextView.setVisibility(View.VISIBLE);
+                    missedCallsRecyclerView.setVisibility(View.GONE);
                 }
-                missedCallAdapter.notifyDataSetChanged();
+                if (missedCallAdapter != null) {
+                    missedCallAdapter.notifyDataSetChanged();
+                }
             });
         });
     }
@@ -197,12 +246,7 @@ public class MissedCallsFragment extends Fragment {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
         String currentHeaderDate = "";
 
-        // Sắp xếp theo ngày giảm dần, sau đó theo thời gian giảm dần
-        Collections.sort(rawMissedCalls, (o1, o2) -> {
-            int dateCompare = Long.compare(o2.getCallDate(), o1.getCallDate()); // Mới nhất trước
-            return dateCompare;
-        });
-
+        Collections.sort(rawMissedCalls, (o1, o2) -> Long.compare(o2.getCallDate(), o1.getCallDate()));
 
         for (MissedCallInfo call : rawMissedCalls) {
             String callDate = sdf.format(new Date(call.getCallDate()));
@@ -215,27 +259,38 @@ public class MissedCallsFragment extends Fragment {
     }
 
 
-    /**
-     * Chuẩn hóa số điện thoại. Loại bỏ các ký tự không phải số và cố gắng thống nhất định dạng.
-     */
     private String normalizePhoneNumber(String phoneNumber) {
         if (phoneNumber == null) return "";
-        String normalized = phoneNumber.replaceAll("[^\\d+]", ""); // Giữ dấu '+'
 
-        // Một số logic chuẩn hóa ví dụ:
-        if (normalized.startsWith("0") && normalized.length() > 9) { // Ví dụ: 09xx -> +849xx
-            normalized = "+84" + normalized.substring(1);
-        } else if (normalized.startsWith("84") && normalized.length() > 9) { // Ví dụ: 849xx -> +849xx
-            normalized = "+" + normalized;
+        String cleanedNumber = phoneNumber.replaceAll("[^\\d+]", "");
+        if (cleanedNumber.startsWith("+") && cleanedNumber.length() > 1) {
+            cleanedNumber = "+" + cleanedNumber.substring(1).replaceAll("[^\\d]", "");
+        } else {
+            cleanedNumber = cleanedNumber.replaceAll("[^\\d]", "");
         }
-        // Có thể thêm các quy tắc khác tùy theo yêu cầu cụ thể của bạn
 
-        return normalized;
+        if (cleanedNumber.startsWith("+") && cleanedNumber.length() >= 10) {
+            return cleanedNumber;
+        }
+
+        if (cleanedNumber.startsWith("0") && cleanedNumber.length() >= 9) {
+            return "+84" + cleanedNumber.substring(1);
+        } else if (cleanedNumber.startsWith("84") && cleanedNumber.length() >= 9) {
+            return "+" + cleanedNumber;
+        }
+
+        if (cleanedNumber.length() >= 9 && cleanedNumber.length() <= 11) {
+            return "+84" + cleanedNumber;
+        }
+
+        return cleanedNumber;
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        executorService.shutdownNow(); // Đóng ExecutorService khi Fragment bị hủy
+        if (executorService != null && !executorService.isShutdown()) {
+            executorService.shutdownNow();
+        }
     }
 }
