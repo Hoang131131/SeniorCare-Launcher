@@ -3,7 +3,7 @@ package ntu.edu.seniorcare.contact;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.util.Log; // Import Log
+import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Toast;
 
@@ -20,12 +20,12 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import java.util.ArrayList;
 import java.util.List;
 
-import ntu.edu.seniorcare.R; // Đảm bảo import R đúng nếu package khác
+import ntu.edu.seniorcare.R;
 
 public class ContactsActivity extends AppCompatActivity {
 
-    private static final String TAG = "ContactsActivity"; // Thêm TAG
-    private static final int PERMISSIONS_REQUEST_CODE = 100; // Đổi tên và dùng chung cho tất cả quyền
+    private static final String TAG = "ContactsActivity";
+    private static final int PERMISSIONS_REQUEST_CODE = 100;
 
     private NavController navController;
 
@@ -56,13 +56,9 @@ public class ContactsActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Kiểm tra quyền mỗi khi Activity resume.
-        // Nếu quyền đã có, thông báo cho Fragment tải dữ liệu.
         if (hasAllPermissions(REQUIRED_PERMISSIONS)) {
-            // Kích hoạt việc tải dữ liệu trong Fragment hiện tại
             loadDataInCurrentFragment();
         } else {
-            // Nếu thiếu quyền, thông báo cho Fragment hiển thị trạng thái thiếu quyền
             notifyFragmentsPermissionDenied();
         }
     }
@@ -87,7 +83,6 @@ public class ContactsActivity extends AppCompatActivity {
         if (!permissionsToRequest.isEmpty()) {
             ActivityCompat.requestPermissions(this, permissionsToRequest.toArray(new String[0]), PERMISSIONS_REQUEST_CODE);
         } else {
-            // Nếu đã có tất cả quyền, tải dữ liệu ngay lập tức (khi Activity vừa tạo xong)
             loadDataInCurrentFragment();
         }
     }

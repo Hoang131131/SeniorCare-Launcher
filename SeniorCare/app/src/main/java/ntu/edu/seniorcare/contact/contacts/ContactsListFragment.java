@@ -34,7 +34,6 @@ import ntu.edu.seniorcare.contact.PermissionAwareFragment; // Import interface
 public class ContactsListFragment extends Fragment implements PermissionAwareFragment {
 
     private static final String TAG = "ContactsListFragment";
-    // Không cần PERMISSIONS_REQUEST_READ_CONTACTS_FRAGMENT ở đây nữa
 
     private RecyclerView contactsRecyclerView;
     private ContactsAdapter contactsAdapter;
@@ -44,7 +43,6 @@ public class ContactsListFragment extends Fragment implements PermissionAwareFra
     private ExecutorService executorService;
 
     public ContactsListFragment() {
-        // Required empty public constr uctor
     }
 
     @Override
@@ -91,10 +89,7 @@ public class ContactsListFragment extends Fragment implements PermissionAwareFra
     @Override
     public void onResume() {
         super.onResume();
-        // Không tự động tải ở đây, Activity sẽ gọi onPermissionsGranted/Denied
-        // Nếu Activity đã có quyền, nó sẽ gọi loadDataInCurrentFragment() trong onResume của nó.
-        // Tuy nhiên, nếu Fragment này đang được hiển thị khi Activity resume, chúng ta cần kích hoạt lại nó.
-        // Có thể gọi lại phương thức của Activity để đảm bảo Fragment được cập nhật trạng thái quyền.
+
         if (getActivity() instanceof ntu.edu.seniorcare.contact.ContactsActivity) {
             ((ntu.edu.seniorcare.contact.ContactsActivity) getActivity()).loadDataInCurrentFragment();
         }

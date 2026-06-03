@@ -11,7 +11,6 @@ public class AppInfo implements Serializable {
     private String packageName;
     private String className;
 
-    // Chỉ giữ một constructor duy nhất
     public AppInfo(String appName, Drawable appIcon, String packageName, String className) {
         this.appName = appName;
         this.appIcon = appIcon;

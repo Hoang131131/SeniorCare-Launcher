@@ -12,8 +12,8 @@ public class SettingsUtils {
     private static final String KEY_SELECTED_APPS_JSON = "selected_apps_json";
 
     // Default values
-    private static final int DEFAULT_ICON_SIZE_PERCENTAGE = 100; // Đặt giá trị mặc định là 150
-    private static final int DEFAULT_TEXT_SIZE_PERCENTAGE = 100; // Đặt giá trị mặc định là 150
+    private static final int DEFAULT_ICON_SIZE_PERCENTAGE = 100;
+    private static final int DEFAULT_TEXT_SIZE_PERCENTAGE = 100;
     static final int DEFAULT_NUM_COLUMNS = 3;
 
     static final int MAX_TEXT_4_COLUMNS = 160;
@@ -21,14 +21,13 @@ public class SettingsUtils {
     static final int MAX_TEXT_3_COLUMNS = 220;
     static final int MAX_ICON_3_COLUMNS = 160;
 
-    // Increased Max values for very large icons/text
-    public static final int MIN_ICON_SIZE_PERCENTAGE = 100; // Nhỏ nhất 100
-    public static final int MAX_ICON_SIZE_PERCENTAGE = 240; // Lớn nhất 300
-    public static final int MIN_TEXT_SIZE_PERCENTAGE = 100; // Nhỏ nhất 100
-    public static final int MAX_TEXT_SIZE_PERCENTAGE = 300; // Lớn nhất 300
+    public static final int MIN_ICON_SIZE_PERCENTAGE = 100;
+    public static final int MAX_ICON_SIZE_PERCENTAGE = 240;
+    public static final int MIN_TEXT_SIZE_PERCENTAGE = 100;
+    public static final int MAX_TEXT_SIZE_PERCENTAGE = 300;
 
-    public static final int MIN_NUM_COLUMNS = 2; // For clarity, though not directly used here
-    public static final int MAX_NUM_COLUMNS = 4; // For clarity, though not directly used here
+    public static final int MIN_NUM_COLUMNS = 2;
+    public static final int MAX_NUM_COLUMNS = 4;
 
     private static SharedPreferences getSharedPreferences(Context context) {
         return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
@@ -54,7 +53,6 @@ public class SettingsUtils {
 
     // Number of Columns
     public static void saveNumColumns(Context context, int numColumns) {
-        // Ensure that saved numColumns is within valid range (2-4)
         numColumns = Math.max(MIN_NUM_COLUMNS, Math.min(MAX_NUM_COLUMNS, numColumns));
         getSharedPreferences(context).edit().putInt(KEY_NUM_COLUMNS, numColumns).apply();
     }

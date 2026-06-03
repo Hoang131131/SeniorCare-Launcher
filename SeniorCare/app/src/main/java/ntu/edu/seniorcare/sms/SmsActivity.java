@@ -142,9 +142,6 @@ public class SmsActivity extends AppCompatActivity {
         executorService.execute(() -> {
             loadContactsForLookup(); // Tải danh bạ trước
 
-            // Nếu không có quyền đọc danh bạ, contactPhoneNumbers sẽ rỗng.
-            // Nếu contactPhoneNumbers rỗng, chúng ta không thể lọc tin nhắn theo danh bạ.
-            // Có thể thêm một kiểm tra ở đây để thông báo cho người dùng.
             if (contactPhoneNumbers.isEmpty() && ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
                 Log.w(TAG, "Contacts loaded, but contactPhoneNumbers is empty. This might mean no contacts or an issue during loading.");
             }
@@ -187,7 +184,6 @@ public class SmsActivity extends AppCompatActivity {
                             if (type == Telephony.Sms.MESSAGE_TYPE_INBOX || type == Telephony.Sms.MESSAGE_TYPE_SENT) {
                                 String normalizedAddress = normalizePhoneNumber(address);
 
-                                // <<< PHẦN BỔ SUNG ĐỂ LỌC TIN NHẮN TỪ DANH BẠ >>>
                                 // Chỉ xử lý tin nhắn nếu số đã chuẩn hóa có trong danh bạ đã tải
                                 if (contactPhoneNumbers.contains(normalizedAddress)) {
                                     String senderName = contactNamesMap.getOrDefault(normalizedAddress, address); // Lấy tên từ contactNamesMap
@@ -197,7 +193,6 @@ public class SmsActivity extends AppCompatActivity {
                                 } else {
                                     // Log.d(TAG, "Tin nhắn từ số " + address + " không có trong danh bạ. Bỏ qua.");
                                 }
-                                // <<< KẾT THÚC PHẦN BỔ SUNG >>>
                             }
                         } while (cursor.moveToNext());
                     }
@@ -308,18 +303,13 @@ public class SmsActivity extends AppCompatActivity {
 
         // Xử lý các tiền tố quốc tế và nội địa
         if (normalized.startsWith("0")) {
-            // Ví dụ: 0912345678 -> +84912345678
             normalized = "+84" + normalized.substring(1);
         } else if (normalized.startsWith("84")) {
-            // Ví dụ: 84912345678 -> +84912345678
             if (!normalized.startsWith("+")) {
                 normalized = "+" + normalized;
             }
-        } else if (!normalized.startsWith("+") && normalized.length() > 7) { // Giả định là số quốc tế nếu không có + và đủ dài
-            // Nếu không có + ở đầu, và không bắt đầu bằng 0/84, giả định nó là số quốc tế
-            // Cần cẩn thận với trường hợp này, vì có thể là số nội địa không có 0 đầu
-            // Để an toàn, chúng ta có thể giả định nó đã ở định dạng quốc tế nếu nó không bắt đầu bằng 0
-            // Hoặc bỏ qua các số quá ngắn không giống định dạng số điện thoại
+        } else if (!normalized.startsWith("+") && normalized.length() > 7) {
+
         }
         return normalized;
     }

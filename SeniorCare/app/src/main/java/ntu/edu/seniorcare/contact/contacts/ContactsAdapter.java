@@ -21,7 +21,6 @@ import ntu.edu.seniorcare.R;
 
 public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ContactViewHolder> {
 
-    // private static final String ZALO_PACKAGE_NAME = "com.zing.zalo"; // Không còn cần thiết
     private final Context context;
     private final List<ContactInfo> contactList;
 
@@ -85,7 +84,6 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.Contac
         TextView contactName;
         TextView contactPhone;
         Button btnCallPhone;
-        // Button btnCallZalo; // Đã xóa khai báo này
 
         public ContactViewHolder(@NonNull View itemView) {
             super(itemView);

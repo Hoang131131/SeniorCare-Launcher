@@ -52,7 +52,7 @@ public class SettingsActivity extends AppCompatActivity {
     private Button manageAppsButton;
     private ImageButton contactsButton;
     private ImageButton fontSettingsButton;
-    private ImageButton homeSettingsButton; // Đổi tên từ set_default_launcher_button
+    private ImageButton homeSettingsButton;
 
     private RecyclerView selectedAppsRecyclerView;
     private SelectedAppAdapter selectedAppAdapter;
@@ -84,7 +84,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         contactsButton = findViewById(R.id.contacts_button);
         fontSettingsButton = findViewById(R.id.font_settings_button);
-        homeSettingsButton = findViewById(R.id.set_default_launcher_button); // Id vẫn là set_default_launcher_button
+        homeSettingsButton = findViewById(R.id.set_default_launcher_button);
 
         selectedAppsRecyclerView = findViewById(R.id.selected_apps_recycler_view);
         selectedAppsRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
@@ -101,7 +101,6 @@ public class SettingsActivity extends AppCompatActivity {
         loadSettings();
         loadSelectedApps();
 
-        // --- Cập nhật icon cho các ImageButton ---
         // Icon Danh bạ
         Drawable contactsIcon = getAppIconFromIntent(new Intent(Intent.ACTION_VIEW, ContactsContract.Contacts.CONTENT_URI));
         if (contactsIcon != null) {
@@ -126,11 +125,10 @@ public class SettingsActivity extends AppCompatActivity {
             homeSettingsButton.setImageDrawable(homeSettingsIcon);
         } else {
             // Fallback nếu không tìm thấy icon cài đặt home launcher
-            homeSettingsButton.setImageResource(R.drawable.ic_settings); // Icon nội bộ nếu cần
+            homeSettingsButton.setImageResource(R.drawable.ic_settings);
         }
 
 
-        // --- Start: Icon Size SeekBar Listener ---
         iconSizeSeekBar.setOnSeekBarChangeListener(new SimpleSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -157,10 +155,8 @@ public class SettingsActivity extends AppCompatActivity {
                 sendUpdateBroadcast();
             }
         });
-        // --- End: Icon Size SeekBar Listener ---
 
 
-        // --- Start: Text Size SeekBar Listener ---
         textSizeSeekBar.setOnSeekBarChangeListener(new SimpleSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -187,9 +183,9 @@ public class SettingsActivity extends AppCompatActivity {
                 sendUpdateBroadcast();
             }
         });
-        // --- End: Text Size SeekBar Listener ---
 
-        // --- Start: Column RadioGroup Listener ---
+
+
         numColumnsRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
             int numColumns = 0;
             if (checkedId == R.id.radio_2_columns) {
@@ -202,9 +198,9 @@ public class SettingsActivity extends AppCompatActivity {
             SettingsUtils.saveNumColumns(SettingsActivity.this, numColumns);
             sendUpdateBroadcast();
         });
-        // --- End: Column RadioGroup Listener ---
 
-        // --- Start: Button Listeners (Đã sửa) ---
+
+
         manageAppsButton.setOnClickListener(v -> showAppSelectionDialog());
 
         // Nút Danh bạ
@@ -249,21 +245,17 @@ public class SettingsActivity extends AppCompatActivity {
                 }
             }
         });
-        // --- End: Button Listeners ---
     }
 
-    // --- Start: NEW helper method to get app icon from an Intent ---
+
     private Drawable getAppIconFromIntent(Intent intent) {
         PackageManager pm = getPackageManager();
-        // Cần FLAG_MATCH_DEFAULT_ONLY để tìm ứng dụng mặc định cho intent này
         List<ResolveInfo> list = pm.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
         if (!list.isEmpty()) {
-            // Lấy ứng dụng đầu tiên trong danh sách (thường là ứng dụng mặc định)
             return list.get(0).loadIcon(pm);
         }
         return null;
     }
-    // --- End: NEW helper method ---
 
     private int mapXmlProgressToActualPercentage(int xmlProgress, int actualRange, int actualMin) {
         float scale = (float) actualRange / (SEEKBAR_XML_MAX - SEEKBAR_XML_MIN);
@@ -513,7 +505,6 @@ public class SettingsActivity extends AppCompatActivity {
         loadSettings();
     }
 
-    // --- SimpleSeekBarChangeListener (UNCHANGED) ---
     private abstract class SimpleSeekBarChangeListener implements SeekBar.OnSeekBarChangeListener {
         @Override
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {

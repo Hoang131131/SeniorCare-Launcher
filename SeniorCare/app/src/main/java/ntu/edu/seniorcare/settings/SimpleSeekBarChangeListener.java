@@ -8,6 +8,6 @@ import android.widget.SeekBar;
 public abstract class SimpleSeekBarChangeListener implements SeekBar.OnSeekBarChangeListener {
     @Override
     public void onStartTrackingTouch(SeekBar seekBar) {
-        // Not used in this context
+
     }
 }

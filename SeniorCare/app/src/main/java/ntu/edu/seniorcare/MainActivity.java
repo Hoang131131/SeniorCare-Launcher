@@ -184,7 +184,7 @@ public class MainActivity extends AppCompatActivity {
 
         // XỬ LÝ NÚT ÂM LƯỢNG
         volumeButton.setOnClickListener(v -> {
-            // Tăng giảm âm lượng lên 1 nấc và hiển thị thanh điều khiển UI
+            // Hiển thị thanh âm lượng, không thay đổi âm lượng
             audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_SAME, AudioManager.FLAG_SHOW_UI);
         });
 
@@ -201,8 +201,8 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         loadAndDisplayApps();
         applySettings();
-        fetchWeather();// Cập nhật thời tiết khi ứng dụng trở lại foreground
-        checkDefaultLauncher(); // Kiểm tra và hỏi người dùng về launcher mặc định
+        fetchWeather();
+        checkDefaultLauncher();
     }
 
 
@@ -211,7 +211,7 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         unregisterReceiver(timeReceiver);
         unregisterReceiver(settingsUpdateReceiver);
-        unregisterReceiver(batteryReceiver); // Đảm bảo unregister receiver pin
+        unregisterReceiver(batteryReceiver);
         weatherExecutorService.shutdownNow();
     }
 
@@ -227,7 +227,7 @@ public class MainActivity extends AppCompatActivity {
 
         int iconResId;
         if (isCharging) {
-            iconResId = R.drawable.ic_battery_charging; // Icon đang sạc
+            iconResId = R.drawable.ic_battery_charging;
         } else if (batteryPct >= 85) {
             iconResId = R.drawable.ic_battery_full;
         } else if (batteryPct >= 60) {
@@ -237,7 +237,7 @@ public class MainActivity extends AppCompatActivity {
         } else if (batteryPct >= 20) {
             iconResId = R.drawable.ic_battery_40;
         } else {
-            iconResId = R.drawable.ic_battery_low; // Icon pin yếu
+            iconResId = R.drawable.ic_battery_low;
         }
 
         runOnUiThread(() -> {
@@ -368,7 +368,7 @@ public class MainActivity extends AppCompatActivity {
         return str.substring(0, 1).toUpperCase() + str.substring(1);
     }
 
-    // --- Xử lý quyền vị trí và thời tiết ---
+    // Xử lý quyền vị trí và thời tiết
     private void requestLocationPermissions() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                 ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -463,7 +463,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             // Nếu chưa có quyền, sẽ yêu cầu lại hoặc hiển thị N/A
             weatherTextView.setText("Thời tiết: N/A");
-            temperateTextView.setText("N/A"); // ĐẶT LẠI temperateTextView
+            temperateTextView.setText("N/A");
             Log.d(TAG, "Không thể fetch thời tiết: thiếu quyền vị trí.");
         }
     }
@@ -474,7 +474,7 @@ public class MainActivity extends AppCompatActivity {
             Log.e(TAG, "Vui lòng thay thế YOUR_OPENWEATHERMAP_API_KEY bằng API key thực của bạn.");
             runOnUiThread(() -> {
                 weatherTextView.setText("Lỗi API Key");
-                temperateTextView.setText("N/A"); // ĐẶT LẠI temperateTextView
+                temperateTextView.setText("N/A");
             });
             return;
         }
@@ -491,7 +491,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.e(TAG, "Lỗi khi gọi API thời tiết: " + e.getMessage());
                     runOnUiThread(() -> {
                         weatherTextView.setText("Lỗi mạng");
-                        temperateTextView.setText("N/A"); // ĐẶT LẠI temperateTextView
+                        temperateTextView.setText("N/A");
                     });
                 }
 
@@ -508,22 +508,22 @@ public class MainActivity extends AppCompatActivity {
                             final String description = capitalizeFirstLetter(weatherResponse.weather.get(0).description);
 
                             runOnUiThread(() -> {
-                                temperateTextView.setText(temperature); // CẬP NHẬT temperateTextView
-                                weatherTextView.setText(description); // CẬP NHẬT weatherTextView
+                                temperateTextView.setText(temperature);
+                                weatherTextView.setText(description);
                                 saveCurrentWeather(temperature, description);
                             });
                         } else {
                             Log.e(TAG, "Dữ liệu thời tiết không hợp lệ.");
                             runOnUiThread(() -> {
                                 weatherTextView.setText("Lỗi dữ liệu");
-                                temperateTextView.setText("N/A"); // ĐẶT LẠI temperateTextView
+                                temperateTextView.setText("N/A");
                             });
                         }
                     } else {
                         Log.e(TAG, "Phản hồi API thời tiết không thành công: " + response.code() + " - " + response.message());
                         runOnUiThread(() -> {
                             weatherTextView.setText("Lỗi");
-                            temperateTextView.setText("N/A"); // ĐẶT LẠI temperateTextView
+                            temperateTextView.setText("N/A");
                         });
                     }
                 }
@@ -592,8 +592,6 @@ public class MainActivity extends AppCompatActivity {
         // Lấy thông tin về Activity sẽ xử lý Intent này MẶC ĐỊNH
         ResolveInfo resolveInfo = getPackageManager().resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY);
 
-        // Nếu có một Activity xử lý Intent này và package của nó trùng với package của ứng dụng của bạn,
-        // thì ứng dụng của bạn là launcher mặc định.
         return resolveInfo != null && getPackageName().equals(resolveInfo.activityInfo.packageName);
     }
 

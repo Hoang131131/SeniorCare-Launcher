@@ -18,7 +18,6 @@ public class SmsInfo {
         this.address = address;
         this.messageBody = messageBody;
         this.timestamp = timestamp;
-        // Log.d(INFO_TAG, "SmsInfo created: Sender='" + sender + "', Address='" + address + "', Body (truncated): '" + (messageBody != null && messageBody.length() > 50 ? messageBody.substring(0, 50) + "..." : messageBody) + "', Timestamp: " + timestamp); // Xóa log này
     }
 
     public String getSender() {
@@ -43,10 +42,9 @@ public class SmsInfo {
         try {
             formatted = sdf.format(new Date(timestamp));
         } catch (Exception e) {
-            Log.e(INFO_TAG, "Error formatting timestamp " + timestamp + ": " + e.getMessage()); // Giữ lại log lỗi
+            Log.e(INFO_TAG, "Error formatting timestamp " + timestamp + ": " + e.getMessage());
             formatted = "Lỗi thời gian";
         }
-        // Log.d(INFO_TAG, "getFormattedTimestamp for " + sender + " (raw: " + timestamp + "): " + formatted); // Xóa log này
         return formatted;
     }
 }

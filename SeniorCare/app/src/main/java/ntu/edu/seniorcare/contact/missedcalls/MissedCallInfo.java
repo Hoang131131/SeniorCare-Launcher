@@ -33,7 +33,7 @@ public class MissedCallInfo {
         return sdf.format(new Date(callDate));
     }
 
-    // Phương thức để lấy chỉ ngày (dd/MM/yyyy) - không sử dụng trong item_missed_call nhưng có thể dùng cho header
+    // Phương thức để lấy chỉ ngày (dd/MM/yyyy)
     public String getFormattedDateOnly() {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
         return sdf.format(new Date(callDate));

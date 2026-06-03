@@ -63,7 +63,6 @@ public class MissedCallAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
             callHolder.callerName.setText(missedCall.getName());
             callHolder.phoneNumber.setText(missedCall.getPhoneNumber());
-            // Chỉ hiển thị giờ gọi, bỏ phần ngày
             callHolder.callTime.setText(missedCall.getFormattedCallTime());
 
             callHolder.btnCallBack.setOnClickListener(v -> {
@@ -92,7 +91,7 @@ public class MissedCallAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     public static class MissedCallViewHolder extends RecyclerView.ViewHolder {
         TextView callerName;
         TextView phoneNumber;
-        TextView callTime; // Chỉ giữ TextView cho giờ
+        TextView callTime;
         MaterialButton btnCallBack;
 
         public MissedCallViewHolder(@NonNull View itemView) {

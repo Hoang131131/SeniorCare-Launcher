@@ -38,7 +38,6 @@ import ntu.edu.seniorcare.contact.PermissionAwareFragment; // Import interface
 public class MissedCallsFragment extends Fragment implements PermissionAwareFragment {
 
     private static final String TAG = "MissedCallsFragment";
-    // Không cần PERMISSIONS_REQUEST_FOR_MISSED_CALLS ở đây nữa
 
     private RecyclerView missedCallsRecyclerView;
     private TextView noMissedCallsTextView; // Thêm TextView
@@ -96,9 +95,7 @@ public class MissedCallsFragment extends Fragment implements PermissionAwareFrag
     @Override
     public void onResume() {
         super.onResume();
-        // Không tự động tải ở đây, Activity sẽ gọi onPermissionsGranted/Denied
-        // Nếu Activity đã có quyền, nó sẽ gọi loadDataInCurrentFragment() trong onResume của nó.
-        // Tuy nhiên, nếu Fragment này đang được hiển thị khi Activity resume, chúng ta cần kích hoạt lại nó.
+
         if (getActivity() instanceof ntu.edu.seniorcare.contact.ContactsActivity) {
             ((ntu.edu.seniorcare.contact.ContactsActivity) getActivity()).loadDataInCurrentFragment();
         }
