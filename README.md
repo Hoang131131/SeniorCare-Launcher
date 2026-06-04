@@ -300,7 +300,7 @@ startActivity(intent);
 
 ## 8.2 Ứng dụng bên ngoài
 
-![Mở ứng dụng Chrome](/media/27.png)
+![Mở ứng dụng Chrome](/media/28.png)
 
 Mở ứng dụng bất kỳ được cài đặt trên thiết bị.
 
