@@ -66,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
-    private static final String OPENWEATHER_API_KEY = "555f6b582f3ad5b9bf601a9380617851"; // Đảm bảo đã thay thế bằng API key thật
+    private static final String OPENWEATHER_API_KEY = "555f6b582f3ad5b9bf601a9380617851";
     private static final String WEATHER_API_URL = "https://api.openweathermap.org/data/2.5/weather?";
 
     // Constants cho SharedPreferences
