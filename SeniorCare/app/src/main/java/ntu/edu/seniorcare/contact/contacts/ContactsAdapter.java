@@ -48,7 +48,7 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.Contac
             if (phoneNumber != null && !phoneNumber.isEmpty()) {
                 // Sử dụng ACTION_DIAL để mở ứng dụng quay số và kích hoạt bộ chọn ứng dụng
                 // Không cần kiểm tra quyền CALL_PHONE với ACTION_DIAL
-                Intent dialIntent = new Intent(Intent.ACTION_DIAL);
+                Intent dialIntent = new Intent(Intent.ACTION_CALL);
                 dialIntent.setData(Uri.parse("tel:" + phoneNumber.replaceAll("[^\\d+]", ""))); // Đảm bảo số điện thoại sạch
 
                 // Kiểm tra xem có ứng dụng nào có thể xử lý Intent này không
@@ -61,7 +61,7 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.Contac
                         context.startActivity(chooserIntent);
                     } catch (android.content.ActivityNotFoundException e) {
                         Toast.makeText(context, "Không tìm thấy ứng dụng nào để thực hiện cuộc gọi.", Toast.LENGTH_SHORT).show();
-                        Log.e("ContactsAdapter", "No app found to handle ACTION_DIAL: " + e.getMessage());
+                        Log.e("ContactsAdapter", "No app found to handle ACTION_CALL: " + e.getMessage());
                     }
                 } else {
                     Toast.makeText(context, "Không tìm thấy ứng dụng nào để thực hiện cuộc gọi.", Toast.LENGTH_SHORT).show();
