@@ -141,10 +141,6 @@ Nhấn "Xóa"
 
 ## 4.2 Chọn số cột hiển thị
 
-### Giao diện 2 cột
-
-![Giao diện 3 cột](media/17.jpg)
-
 ### Giao diện 3 cột
 
 ![Giao diện 3 cột](media/7.jpg)
@@ -304,7 +300,7 @@ startActivity(intent);
 
 ## 8.2 Ứng dụng bên ngoài
 
-![Mở ứng dụng Chrome](media/27.jpg)
+![Mở ứng dụng Chrome](/media/27.png)
 
 Mở ứng dụng bất kỳ được cài đặt trên thiết bị.
 
