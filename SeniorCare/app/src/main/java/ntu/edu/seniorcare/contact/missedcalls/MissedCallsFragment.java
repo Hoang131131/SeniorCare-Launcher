@@ -26,9 +26,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -45,6 +47,7 @@ public class MissedCallsFragment extends Fragment implements PermissionAwareFrag
     private List<MissedCallGroupItem> groupedMissedCallItems;
 
     private Map<String, String> contactsMap;
+    private Set<String> contactPhoneNumbers;
     private ExecutorService executorService;
 
     public MissedCallsFragment() {
@@ -57,6 +60,7 @@ public class MissedCallsFragment extends Fragment implements PermissionAwareFrag
         executorService = Executors.newSingleThreadExecutor();
         contactsMap = new HashMap<>();
         groupedMissedCallItems = new ArrayList<>();
+        contactPhoneNumbers = new HashSet<>();
     }
 
     @Override
@@ -137,7 +141,10 @@ public class MissedCallsFragment extends Fragment implements PermissionAwareFrag
         }
 
         executorService.execute(() -> {
+            // reset cả Map và Set trước khi load
             contactsMap.clear();
+            contactPhoneNumbers.clear();
+
             ContentResolver contentResolver = requireContext().getContentResolver();
             String[] contactProjection = new String[]{
                     ContactsContract.CommonDataKinds.Phone.NUMBER,
@@ -158,7 +165,9 @@ public class MissedCallsFragment extends Fragment implements PermissionAwareFrag
                             String number = contactCursor.getString(numberColumnIndex);
                             String name = contactCursor.getString(nameColumnIndex);
                             if (number != null && name != null) {
-                                contactsMap.put(normalizePhoneNumber(number), name);
+                                String normalized = normalizePhoneNumber(number);
+                                contactsMap.put(normalized, name);
+                                contactPhoneNumbers.add(normalized);
                             }
                         }
                     }
@@ -172,7 +181,6 @@ public class MissedCallsFragment extends Fragment implements PermissionAwareFrag
                     contactCursor.close();
                 }
             }
-
 
             List<MissedCallInfo> rawMissedCalls = new ArrayList<>();
             ContentResolver cr = requireContext().getContentResolver();
@@ -201,13 +209,19 @@ public class MissedCallsFragment extends Fragment implements PermissionAwareFrag
 
                         String normalizedNumber = normalizePhoneNumber(number);
 
-                        if (contactsMap.containsKey(normalizedNumber) || (cachedName != null && !cachedName.isEmpty())) {
+                        // CHỈ thêm nếu số thuộc danh bạ
+                        if (contactPhoneNumbers.contains(normalizedNumber)) {
                             String nameToDisplay = contactsMap.getOrDefault(normalizedNumber, cachedName);
+
                             if (nameToDisplay == null || nameToDisplay.isEmpty()) {
                                 nameToDisplay = number;
                             }
+
                             rawMissedCalls.add(new MissedCallInfo(nameToDisplay, number, callDate));
+                        } else {
+                            // số không có trong danh bạ => bỏ qua
                         }
+
                     } while (callLogCursor.moveToNext());
                 }
             } catch (SecurityException e) {
@@ -254,7 +268,6 @@ public class MissedCallsFragment extends Fragment implements PermissionAwareFrag
             groupedMissedCallItems.add(new MissedCallDetailItem(call));
         }
     }
-
 
     private String normalizePhoneNumber(String phoneNumber) {
         if (phoneNumber == null) return "";
