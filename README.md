@@ -45,12 +45,7 @@ Khi mở ứng dụng lần đầu, SeniorCare sẽ hỏi người dùng có mu�
 
 Ứng dụng cần một số quyền để hoạt động đầy đủ.
 
-| Quyền    | Mục đích                                            | Ảnh               |
-| -------- | --------------------------------------------------- | ----------------- |
 | Vị trí   | Hiển thị thời tiết và nhiệt độ theo vị trí hiện tại | ![](media/1.jpg)  |
-| Danh bạ  | Hiển thị danh bạ và thực hiện cuộc gọi              | ![](media/21.jpg) |
-| Tin nhắn | Hiển thị tin nhắn từ người thân                     | ![](media/26.jpg) |
-| Cuộc gọi | Hiển thị lịch sử cuộc gọi nhỡ                       | ![](media/20.jpg) |
 
 ---
 
@@ -62,9 +57,9 @@ Khi mở ứng dụng lần đầu, SeniorCare sẽ hỏi người dùng có mu�
 
 ![Màn hình chính 1](media/14.jpg)
 
-![Màn hình chính 2](media/18.jpg)
+![Màn hình chính 2](media/16.jpg)
 
-![Màn hình chính 3](media/19.jpg)
+![Màn hình chính 3](media/18.jpg)
 
 ### Thành phần giao diện
 
@@ -105,6 +100,7 @@ Nhấn "Thêm"
 Nhấn giữ ứng dụng để xóa khỏi màn hình chính.
 
 ![Xác nhận xóa ứng dụng](media/11.jpg)
+![Thông báo ứng dụng đã xóa](media/12.jpg)
 
 ### Các bước thực hiện
 
@@ -145,13 +141,17 @@ Nhấn "Xóa"
 
 ## 4.2 Chọn số cột hiển thị
 
+### Giao diện 2 cột
+
+![Giao diện 3 cột](media/17.jpg)
+
 ### Giao diện 3 cột
 
 ![Giao diện 3 cột](media/7.jpg)
 
 ### Giao diện 4 cột
 
-![Giao diện 4 cột](media/8.jpg)
+![Giao diện 4 cột](media/10.jpg)
 
 ### Tự động điều chỉnh
 
@@ -170,6 +170,9 @@ Khoảng cách giữa các ứng dụng tăng
 # 💬 Tin nhắn
 
 ## 5.1 Mở danh sách tin nhắn
+
+Ứng dụng cần một số quyền sau:
+| Tin nhắn  | Hiển thị các tin nhắn              | ![](media/26.jpg) |
 
 SeniorCare chỉ hiển thị tin nhắn từ những người có trong danh bạ nhằm hạn chế tin nhắn rác.
 
@@ -203,15 +206,20 @@ Số điện thoại chuẩn
 
 # 📞 Danh bạ & Cuộc gọi
 
+Ứng dụng cần một số quyền sau:
+| Danh bạ  | Hiển thị danh bạ và thực hiện cuộc gọi              | ![](media/21.jpg) |
+| Tin nhắn | Hiển thị tin nhắn từ người thân                     | ![](media/26.jpg) |
+| Cuộc gọi | Hiển thị lịch sử cuộc gọi nhỡ                       | ![](media/20.jpg) |
+
 ## 6.1 Tab Danh bạ
 
-![Danh bạ](media/25.jpg)
+![Danh bạ](media/23.jpg)
 
 ### Chức năng
 
 * 📞 Gọi thường
 * 💬 Gọi Zalo
-
+(media/24.jpg)
 ---
 
 ## 6.2 Tab Cuộc gọi nhỡ
@@ -230,7 +238,7 @@ Số điện thoại chuẩn
 
 Khi thực hiện cuộc gọi, người dùng có thể chọn ứng dụng gọi.
 
-![Dialog gọi bằng](media/24.jpg)
+![Dialog gọi bằng](media/25.jpg)
 
 ### Ví dụ
 
@@ -295,6 +303,8 @@ startActivity(intent);
 ---
 
 ## 8.2 Ứng dụng bên ngoài
+
+![Mở ứng dụng Chrome](media/27.jpg)
 
 Mở ứng dụng bất kỳ được cài đặt trên thiết bị.
 
