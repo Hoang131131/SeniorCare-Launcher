@@ -576,7 +576,6 @@ public class MainActivity extends AppCompatActivity {
     private void checkDefaultLauncher() {
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         boolean hasAsked = prefs.getBoolean(HAS_ASKED_DEFAULT_LAUNCHER, false);
-
         if (!hasAsked && !isMyLauncherDefault()) {
             showSetDefaultLauncherDialog();
             prefs.edit().putBoolean(HAS_ASKED_DEFAULT_LAUNCHER, true).apply(); // Đánh dấu đã hỏi
