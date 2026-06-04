@@ -471,7 +471,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void fetchWeatherFromApi(double lat, double lon) {
         if (OPENWEATHER_API_KEY.equals("YOUR_OPENWEATHERMAP_API_KEY")) {
-            Log.e(TAG, "Vui lòng thay thế YOUR_OPENWEATHERMAP_API_KEY bằng API key thực của bạn.");
             runOnUiThread(() -> {
                 weatherTextView.setText("Lỗi API Key");
                 temperateTextView.setText("N/A");
