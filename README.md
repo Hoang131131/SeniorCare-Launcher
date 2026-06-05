@@ -1,4 +1,6 @@
 # SeniorCare Launcher
+Link báo cáo:https://docs.google.com/document/d/1uMU6e4dSHotvfHH0QmQYJ6bS3prwe6TsDWlwXo6jLtM/edit?usp=sharing
+Link Video: https://drive.google.com/file/d/18QCJRNKFJMzsSVOwOByc1wvy3Gbswf6s/view?usp=sharing
 
 Launcher Android dành cho người lớn tuổi với giao diện đơn giản, chữ lớn, dễ thao tác và tích hợp các tính năng thiết yếu như cuộc gọi, danh bạ, tin nhắn, thời tiết và quản lý ứng dụng.
 
